@@ -22,8 +22,10 @@ Stack technique : **Django (Backend)** + **React/Vite (Frontend)** + **PostgreSQ
 1.  **Créer le fichier `.env`** dans `backend/` (copier `.env.example` ou demander les clés à Ulysse) :
     ```ini
     DATABASE_URL=postgres://...  (Lien Neon Tech)
+    
+    # Clerk Auth (Backend a besoin des DEUX clés)
     CLERK_PUBLISHABLE_KEY=pk_test_...
-    CLERK_SECRET_KEY=sk_test_...
+    CLERK_SECRET_KEY=sk_test_...  <--  Uniquement dans le Backend
     ```
 
 2.  **Lancer le serveur :**
@@ -57,6 +59,7 @@ Stack technique : **Django (Backend)** + **React/Vite (Frontend)** + **PostgreSQ
 
 1.  **Créer le fichier `.env`** dans `frontend/` (demander la clé à Ulysse) :
     ```ini
+    # Clerk Auth (Frontend a besoin UNIQUEMENT de la clé publique)
     VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
     ```
 
