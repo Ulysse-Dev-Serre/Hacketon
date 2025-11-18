@@ -1,0 +1,34 @@
+# Core Django
+Django
+djangorestframework
+
+# Database
+psycopg2-binary
+dj-database-url
+
+# Authentication & JWT
+PyJWT
+cryptography
+
+# Stripe
+stripe
+
+# CORS (pour React)
+django-cors-headers
+
+# Variables d'environnement
+python-dotenv
+
+# HTTP Requests (pour appels API externes)
+requests
+
+# Validation
+pydantic
+
+# Production (optionnel mais recommandé)
+# gunicorn  # Not supported on Windows
+whitenoise
+
+# Dev/Testing (optionnel)
+pytest
+pytest-django
