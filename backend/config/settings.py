@@ -49,9 +49,11 @@ INSTALLED_APPS = [
     'corsheaders',
 
     # Local apps
-    'products',
-    'orders',
-    'profiles',
+    'accounts',
+    'players',
+    'tournaments',
+    'JoinRequest',
+    'matches',
 ]
 
 MIDDLEWARE = [
