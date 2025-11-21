@@ -5,7 +5,7 @@ django-cors-headers==4.3.1
 
  
 # Database
-psycopg2-binary==2.9.9
+psycopg2-binary>=2.9.9
 dj-database-url==2.1.0
  
 # Authentication
@@ -22,7 +22,7 @@ python-dotenv==1.0.0
  
 # Utilities
 python-decouple==3.8
-Pillow==10.2.0
+Pillow>=10.2.0
 django-filter==23.5
  
 # Development
