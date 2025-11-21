@@ -33,9 +33,11 @@ https://trello.com/b/L1D4h5Q8/groupe1
 django-admin startproject backend .
 
 ### Créer une app Django (ex: payment, products, orders)
-python manage.py startapp payment
-python manage.py startapp products
-python manage.py startapp orders
+python manage.py startapp JoinRequest
+python manage.py startapp accounts
+python manage.py startapp players
+python manage.py startapp tournaments
+python manage.py startapp matches
 
 
 ### Créer et appliquer les migrations
