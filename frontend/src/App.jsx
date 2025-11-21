@@ -1,35 +1,46 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Routes, Route } from "react-router-dom";
+import Layout from "./components/Layout";
+import { SignIn, SignUp } from "@clerk/clerk-react";
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+function Ligues() {
+  return <h1 className="text-2xl">Page Ligues</h1>;
 }
 
-export default App
+function Equipes() {
+  return <h1 className="text-2xl">Page Équipes</h1>;
+}
+
+function Matchs() {
+  return <h1 className="text-2xl">Page Matchs</h1>;
+}
+
+export default function App() {
+  return (
+    <Layout>
+      <Routes>
+        <Route path="/" element={<Ligues />} />
+        <Route path="/equipes" element={<Equipes />} />
+        <Route path="/matchs" element={<Matchs />} />
+
+        {/* Formulaires centrés DANS la page */}
+        <Route
+          path="/sign-in"
+          element={
+            <div className="flex justify-center items-center min-h-screen bg-gray-100">
+              <SignIn routing="path" path="/sign-in" />
+            </div>
+          }
+        />
+
+        <Route
+          path="/sign-up"
+          element={
+            <div className="flex justify-center items-center min-h-screen bg-gray-100">
+              <SignUp routing="path" path="/sign-up" />
+            </div>
+          }
+        />
+      </Routes>
+    </Layout>
+  );
+}
