@@ -1,93 +1,143 @@
-import { Link } from "react-router-dom";
-import { UserButton, useUser } from "@clerk/clerk-react";
-import { useState } from "react";
-import { ChevronDown } from "lucide-react";
-import logo from "../assets/logo.png";
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Menu, X, Trophy } from 'lucide-react';
+import { useUser, UserButton } from '@clerk/clerk-react';
 
-export default function Navbar() {
-  const { isSignedIn } = useUser();
-  const [open, setOpen] = useState(false);
+const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const { isSignedIn, user, isLoaded } = useUser();
+  
+  const userRole = user?.unsafeMetadata?.role;
+  const isActive = (path) => location.pathname === path;
 
   return (
-    <nav className="bg-[#2E9906] h-20 shadow-lg px-8 flex items-center justify-between">
+    <nav className="bg-[#2A800A] border-b border-green-900 text-white sticky top-0 z-50 shadow-md">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center h-16">
 
-      {/* LOGO + TEXTE */}
-      <div className="flex items-center gap-4">
-        <img
-          src={logo}
-          alt="LigueSport Logo"
-          className="w-16 h-16 object-contain drop-shadow-md"
-        />
+          {/* Logo */}
+          <Link to="/" className="flex items-center space-x-2">
+            <img 
+              src="src/assets/logo.png" 
+              alt="" 
+              className="h-16 w-auto object-contain"
+            />
+          </Link>
 
-        <Link
-          to="/"
-          className="text-3xl font-extrabold text-white tracking-wide drop-shadow-lg"
-        >
-          LigueSport
-        </Link>
-      </div>
-
-      {/* MENU DROIT */}
-      <div className="flex items-center gap-8 text-lg relative">
-
-        {/* HOME */}
-        <Link
-          to="/"
-          className="text-lg text-white/90 hover:text-white transition font-medium"
-        >
-          Home
-        </Link>
-
-        {/* MENU DÉROULANT “Rejoindre comme :” */}
-        {!isSignedIn && (
-          <div className="relative">
-            <button
-              onClick={() => setOpen(!open)}
-              className="flex items-center gap-1 text-white/90 hover:text-white transition"
+          {/* Desktop Menu */}
+          <div className="hidden md:flex items-center space-x-8">
+            <Link 
+              to="/" 
+              className={`${isActive('/') ? 'text-white font-semibold underline' : 'text-white/80 hover:text-white'} transition-colors`}
             >
-              Rejoindre comme
-              <ChevronDown
-                size={18}
-                className={`transition-transform duration-200 ${
-                  open ? "rotate-180" : ""
-                }`}
-              />
-            </button>
+              Accueil
+            </Link>
 
-            {open && (
-              <div className="absolute right-0 bg-white shadow-xl mt-3 rounded-xl w-56 overflow-hidden animate-fadeIn">
-                <Link
-                  to="/sign-up?role=joueur"
-                  className="block px-6 py-3 hover:bg-gray-100 transition text-gray-700 font-medium"
-                  onClick={() => setOpen(false)}
-                >
-                  🎽 Joueur
-                </Link>
+            {isSignedIn && userRole === 'player' && (
+              <>
+                <Link to="/teams" className="text-white/80 hover:text-white">Équipes</Link>
+                <Link to="/my-requests" className="text-white/80 hover:text-white">Mes Requêtes</Link>
+                <Link to="/player/matches" className="text-white/80 hover:text-white">Mes Matchs</Link>
+              </>
+            )}
 
-                <Link
-                  to="/sign-up?role=organisateur"
-                  className="block px-6 py-3 hover:bg-gray-100 transition text-gray-700 font-medium"
-                  onClick={() => setOpen(false)}
-                >
-                  🧑‍💼 Organisateur
-                </Link>
-              </div>
+            {isSignedIn && userRole === 'organizer' && (
+              <>
+                <Link to="/organizer/dashboard" className="text-white/80 hover:text-white">Dashboard</Link>
+                <Link to="/organizer/tournaments" className="text-white/80 hover:text-white">Tournois</Link>
+              </>
             )}
           </div>
-        )}
 
-        {/* BOUTON CONNEXION / USERBUTTON */}
-        {!isSignedIn ? (
-          <Link
-            to="/sign-in"
-            className="px-6 py-2 bg-white text-blue-700 font-semibold rounded-lg shadow-md hover:bg-gray-200 transition"
+          {/* Auth Buttons */}
+          <div className="hidden md:flex items-center space-x-4">
+            {!isLoaded ? (
+              <div className="h-8 w-20 bg-green-900 rounded animate-pulse"></div>
+            ) : isSignedIn ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-white/80">{user.firstName}</span>
+                <UserButton 
+                  afterSignOutUrl="/" 
+                  appearance={{ elements: { avatarBox: "h-9 w-9" } }} 
+                />
+              </div>
+            ) : (
+              <>
+                <Link to="/login" className="text-white/80 hover:text-white font-medium">
+                  Connexion
+                </Link>
+
+                <Link
+                  to="/register"
+                  className="bg-white text-[#2A800A] hover:bg-green-100 px-4 py-2 rounded-md font-medium transition shadow"
+                >
+                  Inscription
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="md:hidden text-white"
           >
-            Connexion
-          </Link>
-        ) : (
-          <UserButton />
-        )}
+            {isOpen ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
+          </button>
+        </div>
       </div>
+
+      {/* Mobile Menu */}
+      {isOpen && (
+        <div className="md:hidden bg-green-900 text-white p-4 border-t border-green-700">
+          <div className="flex flex-col space-y-4">
+            
+            <Link to="/" onClick={() => setIsOpen(false)} className="hover:text-green-200">
+              Accueil
+            </Link>
+
+            {isSignedIn ? (
+              <>
+                {userRole === 'player' ? (
+                  <>
+                    <Link to="/teams" className="hover:text-green-200" onClick={() => setIsOpen(false)}>Équipes</Link>
+                    <Link to="/my-requests" className="hover:text-green-200" onClick={() => setIsOpen(false)}>Mes Requêtes</Link>
+                    <Link to="/player/matches" className="hover:text-green-200" onClick={() => setIsOpen(false)}>Mes Matchs</Link>
+                    <Link to="/player/profile" className="hover:text-green-200" onClick={() => setIsOpen(false)}>Mon Profil</Link>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/organizer/dashboard" className="hover:text-green-200" onClick={() => setIsOpen(false)}>Dashboard</Link>
+                    <Link to="/organizer/tournaments" className="hover:text-green-200" onClick={() => setIsOpen(false)}>Mes Tournois</Link>
+                  </>
+                )}
+
+                <div className="pt-3 border-t border-green-700 flex items-center justify-between">
+                  <span className="text-green-200">{user.fullName}</span>
+                  <UserButton afterSignOutUrl="/" />
+                </div>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="hover:text-green-200" onClick={() => setIsOpen(false)}>
+                  Connexion
+                </Link>
+
+                <Link 
+                  to="/register" 
+                  className="py-2 text-green-300 hover:text-white font-semibold" 
+                  onClick={() => setIsOpen(false)}
+                >
+                  Inscription
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
-}
+};
+
+export default Navbar;
