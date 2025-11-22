@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from .models import Tournament, Team
 from .serializers import TournamentSerializer, TeamSerializer
+from accounts.permissions import IsAuthenticatedCustom
+
 
 # Create your views here.
 class TournamentViewSet(viewsets.ModelViewSet):
@@ -20,7 +22,7 @@ class TournamentViewSet(viewsets.ModelViewSet):
         """
         if self.action in ['list', 'retrieve']:
             return [permissions.AllowAny()]  # open to all users for listing and retrieving
-        return [permissions.IsAuthenticated()]
+        return [IsAuthenticatedCustom()]
 
     def list(self, request):
         """
@@ -44,9 +46,6 @@ class TournamentViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(tournaments, many=True)
         data=serializer.data
         return Response(data)
-    
-    def perform_create(self, serializer):
-        serializer.save(organizer=self.request.user)
         
     def create(self, request):
         """
@@ -59,8 +58,9 @@ class TournamentViewSet(viewsets.ModelViewSet):
             return Response({"error": "Only organizers can create tournaments"}, status=403)
         
         serializer = self.get_serializer(data=request.data)
-
-        return super().create(request)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(organizer=request.user)
+        return Response(serializer.data, status=201)
 
     @action(detail=False, methods=['get'])
     def mine(self, request):
@@ -91,6 +91,24 @@ class TournamentViewSet(viewsets.ModelViewSet):
         }
         return Response(data)   
     
+    @action(detail=False,methods=['get'])
+    def my_stats(self, request):
+        """
+        Retrieves statistics about tournaments organized by the current organizer.
+
+        GET /api/tournaments/my_stats/
+        """
+        if request.user.role != 'organizer':
+            return Response({"error": "Only organizers can view stats"}, status=403)
+        tournaments = Tournament.objects.filter(organizer=request.user)
+        tournament_count = tournaments.count()
+        team_count = Team.objects.filter(tournament__organizer=request.user).count()
+        data = {
+        'tournaments_count': tournament_count,
+        'total_teams_count': team_count,
+        }
+        return Response(data)
+    
 class TeamViewSet(viewsets.ModelViewSet):
     """
     ViewSet for the teams.
@@ -105,7 +123,7 @@ class TeamViewSet(viewsets.ModelViewSet):
         """
         if self.action in ['list', 'retrieve', 'available']:
             return [permissions.AllowAny()]  # open to all users for listing and retrieving and checking available teams
-        return [permissions.IsAuthenticated()]
+        return [IsAuthenticatedCustom()]
     
     def list(self, request):
         """
@@ -173,5 +191,8 @@ class TeamViewSet(viewsets.ModelViewSet):
         """
         if request.user.role != 'organizer':
             return Response({"error": "Only organizers can create teams"}, status=403)
-        return super().create(request)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=201)
        
