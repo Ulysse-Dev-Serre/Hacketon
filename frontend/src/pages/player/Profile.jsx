@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { User, MapPin, Phone, Mail, Edit, Shield, Save, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { User, MapPin, Phone, Mail, Edit, Shield, Save, X, ClipboardList } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import useApi from '../../api/axios';
 
@@ -138,12 +139,20 @@ const Profile = () => {
             </div>
 
             {!isEditing ? (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-white border border-[#D0D0D0] rounded-lg text-gray-700 hover:bg-gray-100 transition"
-              >
-                <Edit className="h-4 w-4" /> Modifier
-              </button>
+              <div className="flex gap-2">
+                <Link 
+                  to="/my-requests"
+                  className="flex items-center gap-2 px-4 py-2 bg-[#EAEAEA] border border-[#D0D0D0] rounded-lg text-[#4A4A4A] hover:bg-white transition"
+                >
+                  <ClipboardList className="h-4 w-4" /> Mes Requêtes
+                </Link>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-white border border-[#D0D0D0] rounded-lg text-gray-700 hover:bg-gray-100 transition"
+                >
+                  <Edit className="h-4 w-4" /> Modifier
+                </button>
+              </div>
             ) : (
               <div className="flex gap-2">
                 <button

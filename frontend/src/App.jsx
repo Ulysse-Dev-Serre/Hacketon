@@ -15,10 +15,11 @@ import TeamsList from './pages/player/TeamsList';
 import TeamDetails from './pages/player/TeamDetails';
 import MyRequests from './pages/player/MyRequests';
 import PlayerMatches from './pages/player/PlayerMatches';
+import TournamentsList from './pages/player/TournamentsList'; // Import
+import PublicTournamentDetails from './pages/player/PublicTournamentDetails'; // We need a read-only view
 
 // Organizer Pages
 import Dashboard from './pages/organizer/Dashboard';
-import Tournaments from './pages/organizer/Tournaments';
 import TournamentCreate from './pages/organizer/TournamentCreate';
 import TournamentDetails from './pages/organizer/TournamentDetails';
 import TeamCreate from './pages/organizer/TeamCreate';
@@ -40,6 +41,8 @@ function App() {
         {/* Note: Adjust allowedRoles based on your auth implementation */}
         <Route element={<ProtectedRoute allowedRoles={['player']} />}>
             <Route path="player/profile" element={<Profile />} />
+            <Route path="player/tournaments" element={<TournamentsList />} />
+            <Route path="tournaments/:id" element={<PublicTournamentDetails />} />
             <Route path="teams" element={<TeamsList />} />
             <Route path="teams/:id" element={<TeamDetails />} />
             <Route path="my-requests" element={<MyRequests />} />
@@ -49,7 +52,6 @@ function App() {
         {/* Organizer Routes */}
         <Route element={<ProtectedRoute allowedRoles={['organizer']} />}>
             <Route path="organizer/dashboard" element={<Dashboard />} />
-            <Route path="organizer/tournaments" element={<Tournaments />} />
             <Route path="organizer/tournaments/create" element={<TournamentCreate />} />
             <Route path="organizer/tournaments/:id" element={<TournamentDetails />} />
             <Route path="organizer/teams/create" element={<TeamCreate />} />

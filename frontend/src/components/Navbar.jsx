@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Trophy } from 'lucide-react';
 import { useUser, UserButton } from '@clerk/clerk-react';
+import { useDbUser } from '../context/AuthContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const { isSignedIn, user, isLoaded } = useUser();
+  const { dbUser } = useDbUser(); // Use DB User for role
   
-  const userRole = user?.unsafeMetadata?.role;
+  // Fallback to metadata if DB not ready yet (for UI smoothness), but DB takes precedence
+  const userRole = dbUser?.role || user?.unsafeMetadata?.role;
   const isActive = (path) => location.pathname === path;
 
   return (
@@ -36,8 +39,10 @@ const Navbar = () => {
 
             {isSignedIn && userRole === 'player' && (
               <>
+                <Link to="/player/tournaments" className="text-white/80 hover:text-white flex items-center gap-1">
+                   <Trophy className="h-4 w-4" /> Tournois
+                </Link>
                 <Link to="/teams" className="text-white/80 hover:text-white">Équipes</Link>
-                <Link to="/my-requests" className="text-white/80 hover:text-white">Mes Requêtes</Link>
                 <Link to="/player/matches" className="text-white/80 hover:text-white">Mes Matchs</Link>
               </>
             )}
@@ -45,24 +50,28 @@ const Navbar = () => {
             {isSignedIn && userRole === 'organizer' && (
               <>
                 <Link to="/organizer/dashboard" className="text-white/80 hover:text-white">Dashboard</Link>
-                <Link to="/organizer/tournaments" className="text-white/80 hover:text-white">Tournois</Link>
               </>
             )}
           </div>
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
-            {!isLoaded ? (
-              <div className="h-8 w-20 bg-green-900 rounded animate-pulse"></div>
-            ) : isSignedIn ? (
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-white/80">{user.firstName}</span>
-                <UserButton 
-                  afterSignOutUrl="/" 
-                  appearance={{ elements: { avatarBox: "h-9 w-9" } }} 
-                />
-              </div>
-            ) : (
+          {!isLoaded ? (
+            <div className="h-8 w-20 bg-green-900 rounded animate-pulse"></div>
+          ) : isSignedIn ? (
+            <div className="flex items-center space-x-4">
+              <Link 
+                to={userRole === 'player' ? "/player/profile" : "/organizer/dashboard"} 
+                className="text-sm text-white/80 hover:text-white hover:underline transition"
+              >
+                {user.firstName}
+              </Link>
+              <UserButton 
+                afterSignOutUrl="/" 
+                appearance={{ elements: { avatarBox: "h-9 w-9" } }} 
+              />
+            </div>
+          ) : (
               <>
                 <Link to="/login" className="text-white/80 hover:text-white font-medium">
                   Connexion
@@ -101,15 +110,14 @@ const Navbar = () => {
               <>
                 {userRole === 'player' ? (
                   <>
+                    <Link to="/player/tournaments" className="hover:text-green-200" onClick={() => setIsOpen(false)}>Trouver un Tournoi</Link>
                     <Link to="/teams" className="hover:text-green-200" onClick={() => setIsOpen(false)}>Équipes</Link>
-                    <Link to="/my-requests" className="hover:text-green-200" onClick={() => setIsOpen(false)}>Mes Requêtes</Link>
                     <Link to="/player/matches" className="hover:text-green-200" onClick={() => setIsOpen(false)}>Mes Matchs</Link>
                     <Link to="/player/profile" className="hover:text-green-200" onClick={() => setIsOpen(false)}>Mon Profil</Link>
                   </>
                 ) : (
                   <>
                     <Link to="/organizer/dashboard" className="hover:text-green-200" onClick={() => setIsOpen(false)}>Dashboard</Link>
-                    <Link to="/organizer/tournaments" className="hover:text-green-200" onClick={() => setIsOpen(false)}>Mes Tournois</Link>
                   </>
                 )}
 
