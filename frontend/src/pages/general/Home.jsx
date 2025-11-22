@@ -2,18 +2,23 @@ import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Trophy, Users, Calendar, ArrowRight } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
+import { useDbUser } from '../../context/AuthContext';
 
 const Home = () => {
-  const { isSignedIn, user, isLoaded } = useUser();
+  const { isSignedIn, isLoaded } = useUser();
+  const { dbUser, loadingDb } = useDbUser();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      const role = user?.unsafeMetadata?.role;
+    // Si connecté et que le profil DB est chargé
+    if (isLoaded && isSignedIn && !loadingDb && dbUser) {
+      const role = dbUser.role;
+      
+      // Redirection intelligente basée sur le rôle DB
       if (role === 'player') navigate('/player/profile');
-      if (role === 'organizer') navigate('/organizer/dashboard');
+      else if (role === 'organizer') navigate('/organizer/dashboard');
     }
-  }, [isLoaded, isSignedIn, user, navigate]);
+  }, [isLoaded, isSignedIn, loadingDb, dbUser, navigate]);
 
   return (
     <div className="min-h-[calc(100vh-4rem)] bg-[#D5D5D5] text-[#4A4A4A]">

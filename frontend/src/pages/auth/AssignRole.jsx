@@ -3,13 +3,24 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { User, Trophy } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import useApi from '../../api/axios';
+import { useDbUser } from '../../context/AuthContext';
 
 const AssignRole = () => {
   const api = useApi();
   const navigate = useNavigate();
   const { user, isLoaded, isSignedIn } = useUser();
+  const { dbUser, loadingDb } = useDbUser(); // On récupère l'info fiable de la DB
   const [searchParams] = useSearchParams();
   const autoRole = searchParams.get('auto_role');
+
+  // Redirection automatique si le rôle existe déjà en base de données
+  useEffect(() => {
+    if (!loadingDb && dbUser && dbUser.role) {
+      console.log("AssignRole: Utilisateur déjà configuré avec rôle", dbUser.role, "-> Redirection");
+      if (dbUser.role === 'player') navigate('/player/profile', { replace: true });
+      else if (dbUser.role === 'organizer') navigate('/organizer/dashboard', { replace: true });
+    }
+  }, [dbUser, loadingDb, navigate]);
 
   useEffect(() => {
     if (isLoaded && isSignedIn && user && autoRole) {
@@ -45,6 +56,14 @@ const AssignRole = () => {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center bg-[#CFCFCF] px-4">
+      {/* DEBUG PANEL */}
+      <div className="fixed top-0 left-0 bg-black text-white p-4 z-50 text-xs">
+        DEBUG ASSIGN ROLE:<br/>
+        LoadingDB: {loadingDb ? 'YES' : 'NO'}<br/>
+        UserDB: {dbUser ? 'YES' : 'NO'}<br/>
+        Role: {dbUser?.role || 'N/A'}
+      </div>
+
       <div className="max-w-4xl w-full">
         
         {/* Header */}

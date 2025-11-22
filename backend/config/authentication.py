@@ -40,45 +40,73 @@ class ClerkAuthentication(authentication.BaseAuthentication):
         if not clerk_id:
             raise AuthenticationFailed('Token contains no "sub" (user id)')
 
-        # Récupération des infos du token
-        # Clerk envoie parfois l'email directement ou dans un objet identities
-        # Structure typique Clerk : {'email': '...', 'name': '...'} ou via des clés custom
-        
-        # Adaptez ces clés selon la config exacte de votre session Clerk (Email, Name)
-        # Par défaut Clerk ne met pas toujours l'email dans le JWT racine sans configuration "Session tokens"
-        # Mais supposons qu'on les ait configurés ou qu'on les récupère.
-        
-        email = payload.get('email', '')
-        # Fallback si l'email n'est pas direct (dépend de la config Clerk Dashboard)
-        if not email and 'email_addresses' in payload: 
-             # Parfois Clerk envoie une liste
+        # Récupération de l'email
+        email = payload.get('email')
+        if not email and 'email_addresses' in payload:
              emails = payload.get('email_addresses', [])
-             if emails: email = emails[0].get('email_address', '')
+             if isinstance(emails, list) and len(emails) > 0:
+                 # Format parfois: [{'email_address': '...'}]
+                 first = emails[0]
+                 if isinstance(first, dict):
+                    email = first.get('email_address')
+                 else:
+                    email = str(first)
+        
+        # Si toujours pas d'email, on regarde dans 'identifiers'
+        if not email and 'identifiers' in payload:
+             identifiers = payload.get('identifiers', [])
+             for ident in identifiers:
+                 if isinstance(ident, dict) and ident.get('type') == 'email_address':
+                     email = ident.get('value')
+                     break
 
-        full_name = payload.get('name')
+        # CRASH FIX: Si vraiment aucun email n'est trouvé, on génère un email unique factice
+        # pour satisfaire la contrainte UNIQUE de la base de données.
+        if not email:
+            email = f"{clerk_id}@no-email.clerk"
+
+        # Récupération du nom
+        full_name = payload.get('name') or payload.get('full_name')
         if not full_name:
-             # Fallback nom : combinaison first/last
-             full_name = f"{payload.get('given_name', '')} {payload.get('family_name', '')}".strip()
+             first = payload.get('given_name', '')
+             last = payload.get('family_name', '')
+             if first or last:
+                 full_name = f"{first} {last}".strip()
         
         if not full_name:
-            full_name = email.split('@')[0] if email else "Utilisateur Inconnu"
+            # Fallback sur la partie locale de l'email
+            full_name = email.split('@')[0]
 
         # Synchronisation DB
-        user, created = User.objects.get_or_create(
-            clerk_id=clerk_id,
-            defaults={
-                'email': email,
-                'full_name': full_name,
-                'role': 'player' # Rôle par défaut
-            }
-        )
+        try:
+            user, created = User.objects.get_or_create(
+                clerk_id=clerk_id,
+                defaults={
+                    'email': email,
+                    'full_name': full_name,
+                    'role': 'player'
+                }
+            )
 
-        # Si l'utilisateur existait déjà mais que ses infos ont changé dans Clerk (ex: nom),
-        # on peut vouloir les mettre à jour ici.
-        if not created:
-            if user.email != email or user.full_name != full_name:
-                user.email = email
-                user.full_name = full_name
-                user.save()
+            # Mise à jour si les infos ont changé
+            if not created:
+                save_needed = False
+                # On ne met à jour l'email que s'il est valide (pas un placeholder)
+                if email and not email.endswith('@no-email.clerk') and user.email != email:
+                    user.email = email
+                    save_needed = True
+                
+                if full_name and user.full_name != full_name:
+                    user.full_name = full_name
+                    save_needed = True
+                
+                if save_needed:
+                    user.save()
+                    
+        except Exception as e:
+            # Debug: Afficher le payload si ça plante encore
+            print(f"Error syncing user: {e}")
+            print(f"Payload was: {payload}")
+            raise AuthenticationFailed(f'Database sync error: {str(e)}')
 
-        return (user, None) # (User instance, Token)
+        return (user, None)

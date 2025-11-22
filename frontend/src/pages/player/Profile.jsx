@@ -20,26 +20,39 @@ const Profile = () => {
   });
 
   useEffect(() => {
-    if (isLoaded && user) {
-      // Sync with backend to ensure user is created in Django DB
-      api.get('/auth/me/').catch(err => console.error("Sync error:", err));
+    const fetchProfile = async () => {
+      if (isLoaded && user) {
+        // 1. Sync User & Get DB Profile
+        try {
+           // First ensure user is synced (handled by auth middleware on this call)
+           // And fetch existing profile data from Postgres
+           const res = await api.get('/player/profile/');
+           const dbProfile = res.data;
 
-      const meta = user.unsafeMetadata || {};
+           // Merge DB data with Clerk data (DB takes precedence if set)
+           setFormData(prev => ({
+             ...prev,
+             full_name: user.fullName || '',
+             city: dbProfile.city || user.unsafeMetadata?.city || '',
+             favorite_sport: dbProfile.favorite_sport || user.unsafeMetadata?.favorite_sport || 'Football',
+             level: dbProfile.level || user.unsafeMetadata?.level || 'beginner',
+             position: dbProfile.position || user.unsafeMetadata?.position || '',
+             bio: user.unsafeMetadata?.bio || '',  // Bio is only in Clerk for now (model doesn't have it)
+             phone: user.unsafeMetadata?.phone || '', // Phone only in Clerk
+           }));
+           
+           // If no profile data yet, go to edit mode
+           if (!dbProfile.city) {
+             setIsEditing(true);
+           }
 
-      setFormData({
-        full_name: user.fullName || '',
-        city: meta.city || '',
-        favorite_sport: meta.favorite_sport || 'Football',
-        level: meta.level || 'beginner',
-        position: meta.position || '',
-        bio: meta.bio || '',
-        phone: meta.phone || '',
-      });
-
-      if (!meta.city || !meta.favorite_sport || !meta.level) {
-        setIsEditing(true);
+        } catch (err) {
+          console.error("Error fetching profile:", err);
+        }
       }
-    }
+    };
+
+    fetchProfile();
   }, [isLoaded, user]);
 
   const levelOptions = [
@@ -59,6 +72,7 @@ const Profile = () => {
     setIsLoading(true);
 
     try {
+      // 1. Update Clerk (Metadata)
       await user.update({
         firstName: formData.full_name.split(' ')[0],
         lastName: formData.full_name.split(' ').slice(1).join(' '),
@@ -73,9 +87,18 @@ const Profile = () => {
         }
       });
 
+      // 2. Update Backend (Postgres)
+      await api.patch('/player/profile/', {
+        city: formData.city,
+        favorite_sport: formData.favorite_sport,
+        level: formData.level,
+        position: formData.position
+      });
+
       setIsEditing(false);
     } catch (e) {
       console.error("Erreur:", e);
+      alert("Erreur lors de la sauvegarde du profil.");
     }
 
     setIsLoading(false);

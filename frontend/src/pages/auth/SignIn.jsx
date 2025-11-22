@@ -8,7 +8,7 @@ const SignIn = () => {
         path="/login" 
         routing="path" 
         signUpUrl="/register" 
-        forceRedirectUrl="/assign-role"
+        forceRedirectUrl="/"
         appearance={{
           elements: {
             rootBox: "w-full",
