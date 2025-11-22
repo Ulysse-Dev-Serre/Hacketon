@@ -1,10 +1,16 @@
-import Navbar from "./Navbar";
+import React from 'react';
+import { Outlet } from 'react-router-dom';
+import Navbar from './Navbar';
 
-export default function Layout({ children }) {
+const Layout = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div>
       <Navbar />
-      <main className="p-6">{children}</main>
+      <main className="container mx-auto p-4">
+        <Outlet />
+      </main>
     </div>
   );
-}
+};
+
+export default Layout;
