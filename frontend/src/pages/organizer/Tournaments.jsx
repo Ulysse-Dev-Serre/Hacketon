@@ -11,7 +11,7 @@ const Tournaments = () => {
   useEffect(() => {
     const fetchTournaments = async () => {
       try {
-        const res = await api.get('/organizer/tournaments/');
+        const res = await api.get('/tournaments/mine/');
         setTournaments(res.data);
       } catch (error) {
         console.error("Erreur chargement tournois :", error);
@@ -56,22 +56,10 @@ const Tournaments = () => {
                 to={`/organizer/tournaments/${tournament.id}`}
                 className="block bg-[#F2F2F2] border border-[#D0D0D0] rounded-xl p-6 hover:bg-[#EAEAEA] transition"
               >
-                {/* Status */}
+                {/* Status - Hardcoded for now as model doesn't have it */}
                 <div className="mb-4">
-                  <span className={`px-3 py-1 text-xs rounded-full border font-medium
-                    ${
-                      tournament.status === "ongoing"
-                        ? "bg-green-100 text-green-700 border-green-300"
-                        : tournament.status === "registration"
-                        ? "bg-gray-200 text-gray-700 border-gray-300"
-                        : "bg-gray-100 text-gray-600 border-gray-300"
-                    }
-                  `}>
-                    {tournament.status === "ongoing"
-                      ? "En cours"
-                      : tournament.status === "registration"
-                      ? "Inscriptions"
-                      : "Planifié"}
+                  <span className="px-3 py-1 text-xs rounded-full border font-medium bg-green-100 text-green-700 border-green-300">
+                    En cours
                   </span>
                 </div>
 
@@ -81,19 +69,12 @@ const Tournaments = () => {
                 </h3>
 
                 {/* Infos */}
-                <p className="text-[#737572] text-sm">{tournament.location}</p>
-                <p className="text-[#737572] text-sm">{tournament.dates}</p>
+                <p className="text-[#737572] text-sm">{tournament.city} - {tournament.sport}</p>
+                <p className="text-[#737572] text-sm">Début : {tournament.start_date}</p>
 
-                {/* Teams Progress */}
+                {/* Teams Progress - Simulated for now */}
                 <div className="flex justify-between items-center mt-6 text-sm text-[#737572]">
-                  <span>{tournament.teams} / {tournament.maxTeams} Équipes</span>
-
-                  <div className="w-24 h-2 bg-[#D0D0D0] rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-[#2A800A]"
-                      style={{ width: `${(tournament.teams / tournament.maxTeams) * 100}%` }}
-                    />
-                  </div>
+                  <span>{tournament.teams_count || 0} Équipes</span>
                 </div>
               </Link>
             ))
