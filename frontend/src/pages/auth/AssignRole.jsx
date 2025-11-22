@@ -2,8 +2,10 @@ import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { User, Trophy } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
+import useApi from '../../api/axios';
 
 const AssignRole = () => {
+  const api = useApi();
   const navigate = useNavigate();
   const { user, isLoaded, isSignedIn } = useUser();
   const [searchParams] = useSearchParams();
@@ -22,6 +24,7 @@ const AssignRole = () => {
     }
 
     try {
+      // 1. Update Clerk Metadata
       await user.update({
         unsafeMetadata: {
           ...user.unsafeMetadata,
@@ -29,8 +32,13 @@ const AssignRole = () => {
         }
       });
 
+      // 2. Sync with Backend
+      await api.post('/auth/update-role/', { role });
+
       navigate(role === 'organizer' ? '/organizer/dashboard' : '/player/profile');
     } catch (error) {
+      console.error("Error updating role:", error);
+      // Try fallback navigation
       navigate(role === 'organizer' ? '/organizer/dashboard' : '/player/profile');
     }
   };

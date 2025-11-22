@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Clock, CheckCircle, XCircle } from 'lucide-react';
-import api from '../../api/axios';
+import useApi from '../../api/axios';
 
 const MyRequests = () => {
+  const api = useApi();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 

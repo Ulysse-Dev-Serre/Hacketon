@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Filter } from 'lucide-react';
-import api from '../../api/axios';
+import useApi from '../../api/axios';
 
 const Tournaments = () => {
+  const api = useApi();
   const [tournaments, setTournaments] = useState([]);
   const [loading, setLoading] = useState(true);
 

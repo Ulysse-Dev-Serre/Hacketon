@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Edit2, Plus, Trash2, Calendar, MapPin } from 'lucide-react';
-import api from '../../api/axios';
+import useApi from '../../api/axios';
 
 const Matches = () => {
+  const api = useApi();
   const [matches, setMatches] = useState([]);
   const [filter, setFilter] = useState('all'); // 'all', 'scheduled', 'completed'
   const [loading, setLoading] = useState(true);

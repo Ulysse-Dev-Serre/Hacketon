@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { User, MapPin, Phone, Mail, Edit, Shield, Save, X } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
-import api from '../../api/axios';
+import useApi from '../../api/axios';
 
 const Profile = () => {
+  const api = useApi();
   const { user, isLoaded } = useUser();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,6 +21,9 @@ const Profile = () => {
 
   useEffect(() => {
     if (isLoaded && user) {
+      // Sync with backend to ensure user is created in Django DB
+      api.get('/auth/me/').catch(err => console.error("Sync error:", err));
+
       const meta = user.unsafeMetadata || {};
 
       setFormData({

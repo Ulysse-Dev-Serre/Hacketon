@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MapPin, Users, Trophy, UserPlus, Edit, Trash2, Save, X } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
-import api from '../../api/axios';
+import useApi from '../../api/axios';
 
 const TeamDetails = () => {
+  const api = useApi();
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useUser();

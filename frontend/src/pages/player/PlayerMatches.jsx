@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin, Clock, Trophy } from 'lucide-react';
-import api from '../../api/axios';
+import useApi from '../../api/axios';
 
 const PlayerMatches = () => {
+  const api = useApi();
   const [matches, setMatches] = useState([]);
   const [filter, setFilter] = useState('upcoming');
   const [loading, setLoading] = useState(true);

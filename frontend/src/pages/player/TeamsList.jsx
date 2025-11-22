@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, Users, MapPin } from 'lucide-react';
-import api from '../../api/axios';
+import useApi from '../../api/axios';
 
 const TeamsList = () => {
+  const api = useApi();
   const [teams, setTeams] = useState([]);
   const [filters, setFilters] = useState({
     search: '',

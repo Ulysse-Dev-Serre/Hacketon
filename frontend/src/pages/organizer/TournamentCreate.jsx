@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Save, X } from 'lucide-react';
-import api from '../../api/axios';
+import useApi from '../../api/axios';
 
 const TournamentCreate = () => {
+  const api = useApi();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trophy, Users, Calendar, Activity, Plus, ArrowRight } from 'lucide-react';
-import api from '../../api/axios';
+import useApi from '../../api/axios';
 
 const Dashboard = () => {
+  const api = useApi();
   const [stats, setStats] = useState(null);
   const [recentTournaments, setRecentTournaments] = useState([]);
   const [loading, setLoading] = useState(true);

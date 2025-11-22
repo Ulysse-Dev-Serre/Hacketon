@@ -2,7 +2,11 @@ from django.db import models
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.views import APIView
+from django.utils import timezone
 from .models import Tournament, Team
+from matches.models import Match
+from JoinRequest.models import JoinRequest
 from .serializers import TournamentSerializer, TeamSerializer
 from accounts.permissions import IsAuthenticatedCustom
 
@@ -195,4 +199,60 @@ class TeamViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=201)
+
+
+class OrganizerDashboardView(APIView):
+    permission_classes = [IsAuthenticatedCustom]
+
+    def get(self, request):
+        if request.user.role != 'organizer':
+            return Response({"error": "Only organizers can view dashboard"}, status=403)
+        
+        # Stats
+        tournaments = Tournament.objects.filter(organizer=request.user)
+        teams_count = Team.objects.filter(tournament__in=tournaments).count()
+        
+        # Upcoming matches
+        upcoming_matches = Match.objects.filter(
+            team_a__tournament__in=tournaments,
+            date__gte=timezone.now()
+        ).count()
+
+        # Pending requests
+        pending_requests = JoinRequest.objects.filter(
+            team__tournament__in=tournaments,
+            status='pending'
+        ).count()
+
+        stats = {
+            "tournaments": tournaments.count(),
+            "teams": teams_count,
+            "upcoming_matches": upcoming_matches,
+            "requests": pending_requests
+        }
+
+        # Recent Tournaments
+        recent_tournaments_data = []
+        recent_objs = tournaments.order_by('-created_at')[:5]
+        
+        for t in recent_objs:
+            next_match_obj = Match.objects.filter(
+                team_a__tournament=t,
+                date__gte=timezone.now()
+            ).order_by('date').first()
+            
+            next_match_date = next_match_obj.date if next_match_obj else "-"
+            
+            recent_tournaments_data.append({
+                "id": t.id,
+                "name": t.name,
+                "next_match": next_match_date,
+                "status": "En cours", 
+                "teams": t.teams.count()
+            })
+
+        return Response({
+            "stats": stats,
+            "recent_tournaments": recent_tournaments_data
+        })
        

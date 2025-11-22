@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Check, X, User } from 'lucide-react';
-import api from '../../api/axios';
+import useApi from '../../api/axios';
 
 const RequestsReceived = () => {
+  const api = useApi();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
 

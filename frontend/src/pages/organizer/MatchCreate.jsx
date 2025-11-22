@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Save, X } from 'lucide-react';
-import api from '../../api/axios';
+import useApi from '../../api/axios';
 
 const MatchCreate = () => {
+  const api = useApi();
   const navigate = useNavigate();
   const [tournaments, setTournaments] = useState([]);
   const [teams, setTeams] = useState([]);
