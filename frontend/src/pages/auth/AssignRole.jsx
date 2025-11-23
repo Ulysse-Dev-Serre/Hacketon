@@ -13,14 +13,21 @@ const AssignRole = () => {
   const [searchParams] = useSearchParams();
   const autoRole = searchParams.get('auto_role');
 
-  // Redirection automatique si le rôle existe déjà en base de données
+  // Redirection automatique UNIQUEMENT si le rôle est confirmé dans les métadonnées Clerk
+  // Cela permet d'éviter la redirection immédiate pour les nouveaux inscrits qui ont le rôle 'player' par défaut en DB
   useEffect(() => {
-    if (!loadingDb && dbUser && dbUser.role) {
-      console.log("AssignRole: Utilisateur déjà configuré avec rôle", dbUser.role, "-> Redirection");
-      if (dbUser.role === 'player') navigate('/player/profile', { replace: true });
-      else if (dbUser.role === 'organizer') navigate('/organizer/dashboard', { replace: true });
+    if (!loadingDb && dbUser && user) {
+      const clerkRole = user.unsafeMetadata?.role;
+      
+      // Si le rôle est défini dans Clerk (choix explicite fait) ET correspond à la DB
+      if (clerkRole && dbUser.role === clerkRole) {
+          console.log("AssignRole: Rôle confirmé (Clerk+DB)", clerkRole, "-> Redirection");
+          if (clerkRole === 'player') navigate('/player/profile', { replace: true });
+          else if (clerkRole === 'organizer') navigate('/organizer/dashboard', { replace: true });
+      }
+      // Sinon, on reste sur la page pour laisser l'utilisateur choisir
     }
-  }, [dbUser, loadingDb, navigate]);
+  }, [dbUser, loadingDb, user, navigate]);
 
   useEffect(() => {
     if (isLoaded && isSignedIn && user && autoRole) {

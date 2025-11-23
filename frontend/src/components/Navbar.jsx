@@ -12,6 +12,9 @@ const Navbar = () => {
   
   // Fallback to metadata if DB not ready yet (for UI smoothness), but DB takes precedence
   const userRole = dbUser?.role || user?.unsafeMetadata?.role;
+  
+  console.log("NAVBAR DEBUG:", { dbRole: dbUser?.role, clerkRole: user?.unsafeMetadata?.role, finalRole: userRole });
+
   const isActive = (path) => location.pathname === path;
 
   return (
