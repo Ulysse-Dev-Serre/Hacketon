@@ -19,6 +19,7 @@ class PlayerProfileView(APIView):
         GET /api/player/profile/
 
         """
+        print(f"DEBUG: PlayerProfile GET called by {request.user}")
         profile, created = PlayerProfile.objects.get_or_create(
             user=request.user,
             defaults={
@@ -38,6 +39,7 @@ class PlayerProfileView(APIView):
         PATCH /api/player/profile/
 
         """
+        print(f"DEBUG: PlayerProfile PATCH called. Data: {request.data}")
         try:
             profile = PlayerProfile.objects.get(user=request.user)
         except PlayerProfile.DoesNotExist:
@@ -46,8 +48,10 @@ class PlayerProfileView(APIView):
         # 1. Mise à jour du User (full_name) si fourni
         full_name = request.data.get('full_name')
         if full_name:
+            print(f"DEBUG: Updating full_name from '{request.user.full_name}' to '{full_name}'")
             request.user.full_name = full_name
             request.user.save()
+            print("DEBUG: User saved.")
 
         # 2. Mise à jour du Profile
         serializer = PlayerProfileSerializer(profile, data=request.data, partial=True)

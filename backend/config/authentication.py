@@ -97,10 +97,27 @@ class ClerkAuthentication(authentication.BaseAuthentication):
                     user.email = email
                     save_needed = True
                 
-                # On ne met à jour le nom que si on en a reçu un VRAI depuis Clerk
-                # et qu'il est différent de celui en base.
-                # Cela évite d'écraser un nom correct en base par "None" ou par un ID si Clerk renvoie rien.
-                if full_name and user.full_name != full_name:
+                # LOGIQUE DE PROTECTION DES DONNÉES
+                # On ne met à jour le nom que si le nouveau nom semble "meilleur" ou si l'ancien était "mauvais".
+                
+                # Fix crash si user.full_name est None
+                current_name = user.full_name or ""
+                new_name = full_name or ""
+
+                is_new_name_bad = new_name.startswith('user_') or '@' in new_name
+                is_current_name_bad = current_name.startswith('user_') or '@' in current_name or not current_name
+                
+                should_update_name = False
+
+                if full_name and current_name != full_name:
+                    if is_current_name_bad:
+                        # Si le nom actuel est "moche" (ID/Email) ou vide, on prend n'importe quoi de nouveau
+                        should_update_name = True
+                    elif not is_new_name_bad:
+                        # Si le nom actuel est "bien", on ne met à jour QUE si le nouveau est "bien" aussi
+                        should_update_name = True
+                
+                if should_update_name:
                     user.full_name = full_name
                     save_needed = True
                 

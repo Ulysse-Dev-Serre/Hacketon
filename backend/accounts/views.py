@@ -15,6 +15,7 @@ class CurrentUserView(APIView):
     permission_classes = [IsAuthenticatedCustom]
     
     def get(self, request):
+        print(f"DEBUG: CurrentUserView GET called by {request.user.email} (ID: {request.user.id})")
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
@@ -27,6 +28,7 @@ class UpdateRoleView(APIView):
     permission_classes = [IsAuthenticatedCustom]
 
     def post(self, request):
+        print(f"DEBUG: UpdateRoleView POST called. Data: {request.data}")
         role = request.data.get('role')
         if role not in ['player', 'organizer']:
             return Response({'error': 'Invalid role'}, status=400)
@@ -34,5 +36,6 @@ class UpdateRoleView(APIView):
         user = request.user
         user.role = role
         user.save()
+        print(f"DEBUG: Role updated to {role}")
         
         return Response({'status': 'role updated', 'role': user.role})

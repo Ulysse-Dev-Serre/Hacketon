@@ -19,6 +19,7 @@ class JoinRequestViewSet(viewsets.ModelViewSet):
         - Organisateur : Voit les demandes pour les équipes de ses tournois.
         """
         user = self.request.user
+        print(f"DEBUG: JoinRequest get_queryset called by {user}")
         if user.role == 'organizer':
             return JoinRequest.objects.filter(team__tournament__organizer=user)
         return JoinRequest.objects.filter(player=user)
@@ -76,6 +77,7 @@ class JoinRequestViewSet(viewsets.ModelViewSet):
         POST /api/join-requests/{id}/respond/
         Body: { "action": "accept" | "reject" }
         """
+        print(f"DEBUG: Respond to request called by {request.user}. ID={pk}, Data={request.data}")
         if request.user.role != 'organizer':
             return Response({"error": "Action réservée aux organisateurs"}, status=403)
 
@@ -100,12 +102,14 @@ class JoinRequestViewSet(viewsets.ModelViewSet):
             # Incrémenter la capacité actuelle
             join_request.team.current_capacity += 1
             join_request.team.save()
+            print("DEBUG: Request accepted and player added.")
             
             return Response({"status": "accepted", "message": "Joueur ajouté à l'équipe"})
             
         elif action_type == 'reject':
             join_request.status = 'rejected'
             join_request.save()
+            print("DEBUG: Request rejected.")
             return Response({"status": "rejected", "message": "Demande refusée"})
             
         else:
@@ -117,9 +121,20 @@ class JoinRequestViewSet(viewsets.ModelViewSet):
         Endpoint explicite pour les demandes du joueur.
         GET /api/join-requests/my-requests/
         """
+        print(f"DEBUG: JoinRequest my_requests called by {request.user}")
         if request.user.role != 'player':
+             print("DEBUG: User is not a player")
              return Response({"error": "Réservé aux joueurs"}, status=403)
              
         requests = JoinRequest.objects.filter(player=request.user)
         serializer = self.get_serializer(requests, many=True)
         return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        print(f"DEBUG: JoinRequest update called by {request.user} for ID {kwargs.get('pk')}. Data: {request.data}")
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        print(f"DEBUG: JoinRequest destroy called by {request.user} for ID {kwargs.get('pk')}")
+        return super().destroy(request, *args, **kwargs)
+

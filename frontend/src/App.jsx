@@ -26,6 +26,7 @@ import TeamCreate from './pages/organizer/TeamCreate';
 import RequestsReceived from './pages/organizer/RequestsReceived';
 import Matches from './pages/organizer/Matches';
 import MatchCreate from './pages/organizer/MatchCreate';
+import Tournaments from './pages/organizer/Tournaments';
 
 function App() {
   return (
@@ -52,6 +53,7 @@ function App() {
         {/* Organizer Routes */}
         <Route element={<ProtectedRoute allowedRoles={['organizer']} />}>
             <Route path="organizer/dashboard" element={<Dashboard />} />
+            <Route path="organizer/tournaments" element={<Tournaments />} />
             <Route path="organizer/tournaments/create" element={<TournamentCreate />} />
             <Route path="organizer/tournaments/:id" element={<TournamentDetails />} />
             <Route path="organizer/teams/create" element={<TeamCreate />} />
