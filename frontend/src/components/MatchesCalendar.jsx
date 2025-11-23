@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 import useApi from '../api/axios';
+import { useUser } from '@clerk/clerk-react';
 
 const MatchesCalendar = ({ compact = false }) => {
   const api = useApi();
+  const { isSignedIn } = useUser();
   const [allMatches, setAllMatches] = useState([]);
   const [myMatchesIds, setMyMatchesIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
@@ -13,10 +15,26 @@ const MatchesCalendar = ({ compact = false }) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const allRes = await api.get('/matches/');
-        const myRes = await api.get('/matches/my/');
+        
+        // Prepare promises
+        const promises = [api.get('/matches/')];
+        
+        // Only fetch "my matches" if user is signed in
+        if (isSignedIn) {
+            promises.push(api.get('/matches/my/'));
+        }
+
+        const results = await Promise.all(promises);
+        
+        const allRes = results[0];
         setAllMatches(allRes.data);
-        setMyMatchesIds(new Set(myRes.data.map(m => m.id)));
+
+        if (isSignedIn && results[1]) {
+            setMyMatchesIds(new Set(results[1].data.map(m => m.id)));
+        } else {
+            setMyMatchesIds(new Set());
+        }
+
       } catch (error) {
         console.error('Erreur chargement matchs :', error);
       } finally {
@@ -24,7 +42,7 @@ const MatchesCalendar = ({ compact = false }) => {
       }
     };
     fetchData();
-  }, []);
+  }, [isSignedIn]); // Re-fetch if auth state changes
 
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();

@@ -1,26 +1,22 @@
 ## **Wansu : Backend Django + Stripe**
 - Installer Django + Django REST Framework
-- Créer les endpoints API (produits, commandes, profils)
-- Valider les JWT Clerk côté Django
-- Intégrer Stripe (sessions de paiement + webhook)
-- Connecter Django à Neon Postgres
+- Créer les endpoints API 
 - Documenter les endpoints pour B
+- Intégrer Stripe : sessions de paiement + webhook (optionel)
 
 ## **Meryem : Frontend React + Auth**
 - Installer React + Clerk (login/signup/logout)
 - Créer l'UI (pages login, produits, checkout, confirmation)
 - Mocker les API au début, puis connecter au vrai backend
-- Gérer l'état global (Zustand ou Context)
 - Envoyer les JWT dans les requêtes vers Django
-- Intégrer le flow Stripe Checkout
+- Intégrer le flow Stripe Checkout(optionel)
 
 ## **Ulysse : Infra + DB + Intégration + Git**
 - Configurer clerk (clés API, redirects)
 - Créer la base Neon Postgres + tables (products, orders, profiles)
 - Fournir un script SQL de seed data
+- Valider les JWT Clerk côté Django
 - Tester la connexion Django ↔ Postgres ↔ clerk
-- Déployer frontend + backend en prod
-- Tests finaux du flow complet (E2E)
 - **Gérer GitHub : créer les branches, reviewer et merger les PRs**
 
 https://trello.com/b/L1D4h5Q8/groupe1

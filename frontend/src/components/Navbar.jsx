@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Trophy } from 'lucide-react';
+import { Menu, X, Trophy, Calendar } from 'lucide-react';
 import { useUser, UserButton } from '@clerk/clerk-react';
 import { useDbUser } from '../context/AuthContext';
 
@@ -40,13 +40,14 @@ const Navbar = () => {
               Accueil
             </Link>
 
+            {/* Shared Links */}
+            <Link to="/calendar" className="text-white/80 hover:text-white flex items-center gap-1">
+                <Calendar className="h-4 w-4" /> Calendrier
+            </Link>
+
             {isSignedIn && userRole === 'player' && (
               <>
-                <Link to="/player/tournaments" className="text-white/80 hover:text-white flex items-center gap-1">
-                   <Trophy className="h-4 w-4" /> Tournois
-                </Link>
-                <Link to="/teams" className="text-white/80 hover:text-white">Équipes</Link>
-                <Link to="/player/matches" className="text-white/80 hover:text-white">Mes Matchs</Link>
+                <Link to="/teams" className="text-white/80 hover:text-white">Rejoindre une équipe</Link>
               </>
             )}
 
@@ -113,9 +114,7 @@ const Navbar = () => {
               <>
                 {userRole === 'player' ? (
                   <>
-                    <Link to="/player/tournaments" className="hover:text-green-200" onClick={() => setIsOpen(false)}>Trouver un Tournoi</Link>
-                    <Link to="/teams" className="hover:text-green-200" onClick={() => setIsOpen(false)}>Équipes</Link>
-                    <Link to="/player/matches" className="hover:text-green-200" onClick={() => setIsOpen(false)}>Mes Matchs</Link>
+                    <Link to="/teams" className="hover:text-green-200" onClick={() => setIsOpen(false)}>Rejoindre une équipe</Link>
                     <Link to="/player/profile" className="hover:text-green-200" onClick={() => setIsOpen(false)}>Mon Profil</Link>
                   </>
                 ) : (

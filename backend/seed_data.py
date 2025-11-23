@@ -1,8 +1,10 @@
 import os
 import django
+import uuid
 import random
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from django.utils import timezone
+from faker import Faker
 
 # Setup Django environment
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
@@ -14,161 +16,179 @@ from tournaments.models import Tournament, Team
 from JoinRequest.models import JoinRequest
 from matches.models import Match
 
-def clean_database():
-    print("Cleaning database...")
-    JoinRequest.objects.all().delete()
-    Match.objects.all().delete()
-    Team.objects.all().delete()
-    Tournament.objects.all().delete()
-    PlayerProfile.objects.all().delete()
-    User.objects.all().delete()
-    print("Database cleaned.")
+fake = Faker(['fr_CA'])  # Use Quebec/Canada locale
 
-def create_users_and_profiles():
-    print("Creating users and profiles...")
-    users = []
-    
-    # 1. Create Organizers
-    organizer = User.objects.create(
-        clerk_id="user_org_001",
-        email="organizer@example.com",
-        full_name="Alice Organizer",
-        role="organizer"
+def create_organizer():
+    print("Creating or getting organizer...")
+    # On utilise get_or_create pour ne pas crasher si l'organisateur existe déjà
+    organizer, created = User.objects.get_or_create(
+        clerk_id="user_org_main",
+        defaults={
+            "email": "organizer@hackathon.com",
+            "full_name": "Alice Organisateur",
+            "role": "organizer"
+        }
     )
-    users.append(organizer)
+    if created:
+        print("Organizer created.")
+    else:
+        print("Organizer already exists. Using existing one.")
+    return organizer
 
-    # 2. Create Players
-    player_names = [
-        "Bob Striker", "Charlie Goalie", "David Defender", "Eve Midfield", 
-        "Frank Forward", "Grace Guard", "Hank Hammer", "Ivy Intercept"
+def create_tournaments(organizer):
+    print("Creating tournaments...")
+    tournaments = []
+    # On ajoute un suffixe aléatoire pour éviter les doublons de noms exacts si on relance, 
+    # ou on accepte d'avoir plusieurs tournois avec le même nom (ce qui est autorisé par le modèle mais peut être confus).
+    # Pour faire simple et additif, on crée toujours.
+    
+    tournament_data = [
+        ("Ligue des Champions", "Football", "Montréal"),
+        ("Tournoi Basket 3x3", "Basketball", "Québec"),
+        ("Open de Tennis", "Tennis", "Laval")
+    ]
+
+    for name, sport, city in tournament_data:
+        # Ajout d'un identifiant court pour distinguer les runs si on veut, 
+        # mais gardons le propre. Le modèle n'a pas de contrainte unique sur le nom.
+        t = Tournament.objects.create(
+            name=f"{name} {fake.word()}", # Petit ajout pour varier si lancé plusieurs fois
+            sport=sport,
+            city=city,
+            start_date=date.today() + timedelta(days=random.randint(7, 30)),
+            organizer=organizer
+        )
+        tournaments.append(t)
+    
+    return tournaments
+
+def create_teams(tournaments):
+    print("Creating 8 teams...")
+    teams = []
+    
+    # ... distribution ...
+    distribution = [3, 3, 2]
+    
+    team_names_base = [
+        "Les Tigres", "Les Lions", "Les Aigles", 
+        "Les Requins", "Les Panthères", "Les Loups", 
+        "Les Ours", "Les Faucons"
     ]
     
-    cities = ["Paris", "Lyon", "Marseille", "Bordeaux"]
-    positions = ["Attaquant", "Défenseur", "Gardien", "Milieu"]
+    name_idx = 0
+    for i, t in enumerate(tournaments):
+        # S'assurer qu'on ne dépasse pas l'index si distribution > tournois dispo
+        if i >= len(distribution): break
+        
+        count = distribution[i]
+        for _ in range(count):
+            if name_idx < len(team_names_base):
+                base_name = team_names_base[name_idx]
+                name_idx += 1
+            else:
+                base_name = f"Équipe {name_idx+1}"
+                name_idx += 1
+            
+            # Ajout d'un suffixe unique pour éviter confusion
+            team_name = f"{base_name} {random.randint(100, 999)}"
+
+            team = Team.objects.create(
+                name=team_name,
+                tournament=t,
+                max_capacity=10
+            )
+            teams.append(team)
+            
+    return teams
+
+def create_players_and_assign(teams):
+    print("Creating 60 players and assigning to teams...")
+    players = []
+    
     levels = ["beginner", "intermediate", "advanced"]
+    positions = ["Attaquant", "Défenseur", "Gardien", "Milieu", "Pivot", "Meneur"]
 
-    players_list = []
-
-    for i, name in enumerate(player_names):
+    # Pour éviter les collisions d'email/clerk_id, on utilise uuid/faker à chaque fois
+    for _ in range(60):
+        uid = uuid.uuid4().hex[:8]
         user = User.objects.create(
-            clerk_id=f"user_player_{i+1:03d}",
-            email=f"player{i+1}@example.com",
-            full_name=name,
+            clerk_id=f"user_player_{uid}",
+            email=f"player_{uid}@example.com", # Email unique
+            full_name=fake.name(),
             role="player"
         )
-        users.append(user)
-        players_list.append(user)
-
-        # Create associated PlayerProfile
+        
         PlayerProfile.objects.create(
             user=user,
-            city=random.choice(cities),
-            favorite_sport="Football",
+            city=random.choice(["Montréal", "Québec", "Laval", "Gatineau", "Longueuil", "Sherbrooke", "Lévis", "Saguenay"]),
+            favorite_sport=random.choice(["Football", "Basketball", "Tennis"]),
             level=random.choice(levels),
             position=random.choice(positions)
         )
+        players.append(user)
+
+    # Assign players to teams
+    random.shuffle(players)
     
-    print(f"Created {len(users)} users.")
-    return organizer, players_list
+    if not teams:
+        print("No teams to assign players to.")
+        return players
 
-def create_tournament_and_teams(organizer, players):
-    print("Creating tournament and teams...")
+    for i, player in enumerate(players):
+        team_index = i % len(teams)
+        team = teams[team_index]
+        
+        if not team.is_full:
+            team.members.add(player)
+            team.current_capacity += 1
+            team.save()
+            
+    return players
+
+def create_matches(tournaments):
+    print("Creating matches (5 per tournament)...")
     
-    # Create Tournament
-    tournament = Tournament.objects.create(
-        name="Ligue des Champions Hackathon",
-        sport="Football",
-        city="Paris",
-        start_date=date.today() + timedelta(days=7),
-        organizer=organizer
-    )
-
-    # Create Teams
-    team_names = ["Les Tigres", "Les Lions", "Les Aigles", "Les Requins"]
-    teams = []
-
-    for name in team_names:
-        team = Team.objects.create(
-            name=name,
-            tournament=tournament,
-            max_capacity=5
-        )
-        teams.append(team)
-
-    # Assign some players to teams (leave some free for join requests)
-    # Tigres gets 2 players
-    teams[0].members.add(players[0], players[1])
-    teams[0].current_capacity = 2
-    teams[0].save()
-
-    # Lions gets 2 players
-    teams[1].members.add(players[2], players[3])
-    teams[1].current_capacity = 2
-    teams[1].save()
-
-    print(f"Created tournament '{tournament.name}' with {len(teams)} teams.")
-    return tournament, teams
-
-def create_join_requests(players, teams):
-    print("Creating join requests...")
-    
-    # Players[4] wants to join 'Les Tigres' (Pending)
-    JoinRequest.objects.create(
-        player=players[4],
-        team=teams[0],
-        status='pending',
-        message="Salut, je suis un super attaquant, prenez-moi !"
-    )
-
-    # Players[5] wanted to join 'Les Lions' (Accepted - simulates history)
-    # Note: In a real app, accepting would add to members. Here we just log the request.
-    JoinRequest.objects.create(
-        player=players[5],
-        team=teams[1],
-        status='accepted',
-        message="J'ai déjà joué avec vous l'an dernier."
-    )
-
-    # Players[6] wanted to join 'Les Aigles' (Rejected)
-    JoinRequest.objects.create(
-        player=players[6],
-        team=teams[2],
-        status='rejected',
-        message="Je débute."
-    )
-
-    print("Created 3 join requests.")
-
-def create_matches(teams):
-    print("Creating matches...")
-    
-    # Match 1: Tigres vs Lions (Scheduled for tomorrow)
-    Match.objects.create(
-        team_a=teams[0],
-        team_b=teams[1],
-        date=timezone.now() + timedelta(days=1),
-        location="Stade Charléty, Paris"
-    )
-
-    # Match 2: Aigles vs Requins (Past match with score)
-    Match.objects.create(
-        team_a=teams[2],
-        team_b=teams[3],
-        date=timezone.now() - timedelta(days=2),
-        location="Parc des Princes, Paris",
-        score_a=2,
-        score_b=1
-    )
-
-    print("Created 2 matches.")
+    for t in tournaments:
+        t_teams = list(t.teams.all())
+        
+        if len(t_teams) < 2:
+            print(f"Not enough teams in tournament {t.name} to create matches.")
+            continue
+            
+        for _ in range(5):
+            # Pick 2 different teams
+            team_a, team_b = random.sample(t_teams, 2)
+            
+            # Random date within next month or past month
+            days_delta = random.randint(-10, 20)
+            match_date = timezone.now() + timedelta(days=days_delta)
+            
+            # Random score if in past
+            score_a = None
+            score_b = None
+            if days_delta < 0:
+                score_a = random.randint(0, 5)
+                score_b = random.randint(0, 5)
+            
+            Match.objects.create(
+                team_a=team_a,
+                team_b=team_b,
+                date=match_date,
+                location=f"Stade de {t.city}",
+                score_a=score_a,
+                score_b=score_b
+            )
 
 def run_seed():
-    clean_database()
-    organizer, players = create_users_and_profiles()
-    tournament, teams = create_tournament_and_teams(organizer, players)
-    create_join_requests(players, teams)
-    create_matches(teams)
+    # clean_database()  <-- Désactivé pour ne pas supprimer les données existantes
+    organizer = create_organizer()
+    tournaments = create_tournaments(organizer)
+    teams = create_teams(tournaments)
+    players = create_players_and_assign(teams)
+    create_matches(tournaments)
+    
     print("\nSeed completed successfully! 🌱")
+    print(f"Generated: {len(players)} players, {len(teams)} teams, {len(tournaments)} tournaments.")
 
 if __name__ == '__main__':
     run_seed()

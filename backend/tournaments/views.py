@@ -7,7 +7,7 @@ from django.utils import timezone
 from .models import Tournament, Team
 from matches.models import Match
 from JoinRequest.models import JoinRequest
-from .serializers import TournamentSerializer, TeamSerializer
+from .serializers import TournamentSerializer, TeamSerializer, SimpleTeamSerializer
 from accounts.permissions import IsAuthenticatedCustom
 
 
@@ -96,7 +96,9 @@ class TournamentViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(tournament)       
         data = serializer.data
 
-        data['teams'] = TeamSerializer(tournament.teams.all(), many=True).data
+        # Utilisation de SimpleTeamSerializer pour éviter d'exposer trop d'infos (ex: liste des membres pour les visiteurs)
+        # et pour être plus léger, mais suffisant pour le frontend (besoin des IDs et noms pour mapper les matchs)
+        data['teams'] = SimpleTeamSerializer(tournament.teams.all(), many=True).data
         data['stats'] = {
             'team_count': tournament.teams.count(),
             'total_players': sum(team.current_capacity for team in tournament.teams.all())

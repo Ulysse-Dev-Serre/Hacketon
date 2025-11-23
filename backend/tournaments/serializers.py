@@ -11,6 +11,14 @@ class TournamentSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'sport', 'city', 'start_date', 'organizer', 'created_at']
         read_only_fields = ['id', 'created_at', 'organizer']
 
+class SimpleTeamSerializer(serializers.ModelSerializer):
+    """
+    Serializer simple pour lister les équipes dans le détail du tournoi (éviter la récursion/lourdeur).
+    """
+    class Meta:
+        model = Team
+        fields = ['id', 'name', 'max_capacity', 'current_capacity']
+
 class TeamSerializer(serializers.ModelSerializer):
     """
     Serializer for the teams.

@@ -15,6 +15,14 @@ class MatchViewSet(viewsets.ModelViewSet):
     serializer_class = MatchSerializer
     permission_classes = [IsAuthenticatedCustom]
     
+    def get_permissions(self):
+        """
+        Assign permissions based on action.
+        """
+        if self.action in ['list', 'retrieve']:
+            return [permissions.AllowAny()]
+        return [IsAuthenticatedCustom()]
+    
     def list(self, request, *args, **kwargs):
         print(f"DEBUG: Match list called by {request.user}")
         return super().list(request, *args, **kwargs)

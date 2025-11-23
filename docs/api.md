@@ -25,10 +25,10 @@ TEAMS
 └── GET  /api/teams/              All teams✅
 
 JOIN REQUESTS
-├── POST  /api/join-requests/           Send a join request                  ✅
-├── GET   /api/join-requests/my-requests/ My join requests                   ✅
-├── GET   /api/join-requests/           Received requests (organizer)        ✅ 
-└── POST  /api/join-requests/:id/respond/ Accept/Reject request              ✅
+├── POST  /api/join-requests/           Send a join request✅               
+├── GET   /api/join-requests/my-requests/ My join requests✅                  
+├── GET   /api/join-requests/           Received requests (organizer) ✅ 
+└── POST  /api/join-requests/:id/respond/ Accept/Reject request ✅
 
 MATCHES
 ├── POST  /api/matches/           Create a match✅
