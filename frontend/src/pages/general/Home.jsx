@@ -13,6 +13,7 @@ const Home = () => {
   
   // State for player home feed
   const [featuredTournaments, setFeaturedTournaments] = useState([]);
+  const [upcomingMatches, setUpcomingMatches] = useState([]);
 
   useEffect(() => {
     if (isLoaded && isSignedIn && !loadingDb && dbUser) {
@@ -30,8 +31,18 @@ const Home = () => {
   const fetchFeaturedContent = async () => {
     try {
       // Fetch 3 recent tournaments
-      const res = await api.get('/tournaments/');
-      setFeaturedTournaments(res.data.slice(0, 3));
+      const tourRes = await api.get('/tournaments/');
+      setFeaturedTournaments(tourRes.data.slice(0, 3));
+
+      // Fetch upcoming matches
+      const matchRes = await api.get('/matches/my/');
+      // Filter for upcoming (no score yet or future date) and take top 2
+      const upcoming = matchRes.data
+        .filter(m => m.score_a === null || m.score_b === null)
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .slice(0, 2);
+      setUpcomingMatches(upcoming);
+
     } catch (error) {
       console.error("Error fetching home content:", error);
     }
@@ -103,9 +114,29 @@ const Home = () => {
                 <h3 className="font-bold text-[#2A800A] mb-4 flex items-center gap-2">
                   <Calendar className="h-5 w-5" /> Prochains Matchs
                 </h3>
-                <p className="text-[#737572] text-sm italic">
-                  Vous n'avez aucun match prévu pour le moment. Rejoignez une équipe pour commencer la compétition !
-                </p>
+                
+                {upcomingMatches.length > 0 ? (
+                  <div className="space-y-4">
+                    {upcomingMatches.map(match => (
+                      <div key={match.id} className="border-b border-[#F2F2F2] pb-3 last:border-0 last:pb-0">
+                        <p className="text-sm font-bold text-[#4A4A4A] mb-1">
+                          {match.team_a?.name || 'Équipe A'} vs {match.team_b?.name || 'Équipe B'}
+                        </p>
+                        <div className="flex justify-between text-xs text-[#737572]">
+                          <span>{new Date(match.date).toLocaleDateString()}</span>
+                          <span>{match.location}</span>
+                        </div>
+                      </div>
+                    ))}
+                    <Link to="/player/matches" className="block text-center text-sm text-[#2A800A] font-medium mt-2 hover:underline">
+                      Voir tout →
+                    </Link>
+                  </div>
+                ) : (
+                  <p className="text-[#737572] text-sm italic">
+                    Vous n'avez aucun match prévu pour le moment. Rejoignez une équipe pour commencer la compétition !
+                  </p>
+                )}
              </div>
 
              <div className="bg-white p-6 rounded-xl border border-[#D0D0D0] shadow-sm">

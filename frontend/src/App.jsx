@@ -27,6 +27,7 @@ import RequestsReceived from './pages/organizer/RequestsReceived';
 import Matches from './pages/organizer/Matches';
 import MatchCreate from './pages/organizer/MatchCreate';
 import Tournaments from './pages/organizer/Tournaments';
+import PublicPlayerProfile from './pages/general/PublicPlayerProfile';
 
 function App() {
   return (
@@ -38,6 +39,12 @@ function App() {
         <Route path="register/*" element={<SignUp />} />
         <Route path="assign-role" element={<AssignRole />} />
 
+        {/* Shared Routes (Authenticated) */}
+        <Route element={<ProtectedRoute allowedRoles={['player', 'organizer']} />}>
+             <Route path="players/:id" element={<PublicPlayerProfile />} />
+             <Route path="teams/:id" element={<TeamDetails />} />
+        </Route>
+
         {/* Player Routes */}
         {/* Note: Adjust allowedRoles based on your auth implementation */}
         <Route element={<ProtectedRoute allowedRoles={['player']} />}>
@@ -45,7 +52,6 @@ function App() {
             <Route path="player/tournaments" element={<TournamentsList />} />
             <Route path="tournaments/:id" element={<PublicTournamentDetails />} />
             <Route path="teams" element={<TeamsList />} />
-            <Route path="teams/:id" element={<TeamDetails />} />
             <Route path="my-requests" element={<MyRequests />} />
             <Route path="player/matches" element={<PlayerMatches />} />
         </Route>

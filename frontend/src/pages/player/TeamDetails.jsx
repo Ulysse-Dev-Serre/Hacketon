@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { MapPin, Users, Trophy, UserPlus, Edit, Trash2, Save, X } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import useApi from '../../api/axios';
@@ -163,17 +163,22 @@ const TeamDetails = () => {
             <h2 className="text-xl font-bold text-[#2A800A] mb-4">Effectif ({team.members.length})</h2>
             <div className="space-y-4">
               {team.members.map((member) => (
-                <div key={member.id} className="flex items-center justify-between p-3 bg-white border border-[#D0D0D0] rounded-lg">
+                <Link 
+                  to={`/players/${member.id}`} 
+                  key={member.id} 
+                  className="flex items-center justify-between p-3 bg-white border border-[#D0D0D0] rounded-lg hover:bg-gray-50 transition cursor-pointer group"
+                >
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-[#EAEAEA] flex items-center justify-center text-[#2A800A] font-bold">
+                    <div className="h-10 w-10 rounded-full bg-[#EAEAEA] flex items-center justify-center text-[#2A800A] font-bold group-hover:bg-[#2A800A] group-hover:text-white transition">
                       {member.full_name?.charAt(0) || 'U'}
                     </div>
                     <div>
-                      <p className="font-medium text-[#4A4A4A]">{member.full_name}</p>
-                      {/* Role display can be added if backend provides it */}
+                      <p className="font-medium text-[#4A4A4A] group-hover:text-[#2A800A]">{member.full_name}</p>
+                      <p className="text-xs text-[#737572]">Voir le profil</p>
                     </div>
                   </div>
-                </div>
+                  <Users className="h-4 w-4 text-[#D0D0D0] group-hover:text-[#2A800A]" />
+                </Link>
               ))}
               {team.members.length === 0 && <p className="text-[#737572] italic">Aucun joueur pour le moment.</p>}
             </div>

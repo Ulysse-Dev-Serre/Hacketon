@@ -49,17 +49,27 @@ class MatchViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def my(self, request):
         """
-        Retrieves matches involving teams the user is part of.
+        Retrieves matches relevant to the user.
+        - Organizer: Matches in their tournaments.
+        - Player: Matches of teams they belong to.
 
         GET /api/matches/my/
         """
         print(f"DEBUG: Match my called by {request.user}")
-        user_teams = request.user.teams.all()
-        # Find matches where the user's teams are either team_a or team_b and order by date descending
-        # Database-level OR filtering with Q(Query) objects, more efficient than Python-side filtering
-        matches = Match.objects.filter(
-            Q(team_a__in=user_teams) | Q(team_b__in=user_teams)
-        ).order_by('-date')
+        
+        if request.user.role == 'organizer':
+             # Organisateur : Matchs liés aux tournois qu'il a créés
+             # On cherche les matchs où l'équipe A (ou B) appartient à un tournoi géré par l'user
+             matches = Match.objects.filter(
+                 team_a__tournament__organizer=request.user
+             ).order_by('-date')
+        else:
+            # Joueur : Matchs des équipes où il est membre
+            user_teams = request.user.teams.all()
+            matches = Match.objects.filter(
+                Q(team_a__in=user_teams) | Q(team_b__in=user_teams)
+            ).order_by('-date')
+            
         serializer = self.get_serializer(matches, many=True)
         data = serializer.data
         return Response(data)

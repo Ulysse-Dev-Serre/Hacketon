@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Trophy, Users, Calendar, Activity, Plus, ArrowRight } from 'lucide-react';
 import useApi from '../../api/axios';
+import MatchesCalendar from '../../components/MatchesCalendar';
 
 const Dashboard = () => {
   const api = useApi();
@@ -85,134 +86,150 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Recent Activity / Quick Actions */}
-      <div className="grid lg:grid-cols-2 gap-8">
-
-        {/* Tournaments List (Full) */}
-        <div className="bg-[#F2F2F2] rounded-xl border border-[#D0D0D0] p-6 shadow-sm">
-
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-[#2A800A]">Mes Tournois</h2>
-            <Link 
-              to="/organizer/tournaments/create" 
-              className="text-sm text-[#2A800A] hover:underline font-medium"
-            >
-              + Créer
-            </Link>
-          </div>
-
-          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-            {tournaments.length > 0 ? (
-              tournaments.map((t) => (
-                <Link 
-                  key={t.id}
-                  to={`/organizer/tournaments/${t.id}`}
-                  className="block p-4 bg-white rounded-lg border border-[#D0D0D0] hover:bg-[#EDEDED] transition group"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-bold text-[#2A800A] group-hover:text-green-700">{t.name}</h3>
-                      <div className="flex gap-3 text-sm text-[#737572] mt-1">
-                        <span>{t.city}</span>
-                        <span>•</span>
-                        <span>{t.sport}</span>
-                      </div>
-                    </div>
-                    
-                    <ArrowRight className="h-5 w-5 text-[#D0D0D0] group-hover:text-[#2A800A]" />
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-[#737572] mb-4">Aucun tournoi.</p>
-                <Link 
-                  to="/organizer/tournaments/create" 
-                  className="inline-block px-4 py-2 bg-[#2A800A] text-white rounded-lg hover:bg-[#256E08]"
-                >
-                  Créer
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Teams List (New Section) */}
-        <div className="bg-[#F2F2F2] rounded-xl border border-[#D0D0D0] p-6 shadow-sm">
-
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-[#2A800A]">Mes Équipes</h2>
-            <Link 
-              to="/organizer/teams/create" 
-              className="text-sm text-[#2A800A] hover:underline font-medium"
-            >
-              + Ajouter
-            </Link>
-          </div>
-
-          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-            {teams.length > 0 ? (
-              teams.map((t) => (
-                <div 
-                  key={t.id}
-                  className="p-4 bg-white rounded-lg border border-[#D0D0D0]"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-bold text-[#2A800A]">{t.name}</h3>
-                      <div className="text-sm text-[#737572] mt-1">
-                        {/* On essaie de retrouver le nom du tournoi, sinon on affiche l'ID ou rien */}
-                        Tournoi: {tournaments.find(tour => tour.id === t.tournament)?.name || 'Inconnu'}
-                      </div>
-                    </div>
-                    
-                    <div className="text-right">
-                      <span className="block text-xl font-bold text-[#2A800A]">
-                        {t.current_capacity}/{t.max_capacity}
-                      </span>
-                      <span className="text-xs text-[#737572]">Joueurs</span>
-                    </div>
-                  </div>
+      <div className="grid lg:grid-cols-3 gap-8">
+        
+        {/* LEFT COLUMN: Tournaments & Teams */}
+        <div className="lg:col-span-2 space-y-8">
+            
+            {/* Tournaments List */}
+            <div className="bg-[#F2F2F2] rounded-xl border border-[#D0D0D0] p-6 shadow-sm">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold text-[#2A800A]">Mes Tournois</h2>
+                    <Link 
+                    to="/organizer/tournaments/create" 
+                    className="text-sm text-[#2A800A] hover:underline font-medium"
+                    >
+                    + Créer
+                    </Link>
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-[#737572] mb-4">Aucune équipe.</p>
-                <Link 
-                  to="/organizer/teams/create" 
-                  className="inline-block px-4 py-2 bg-[#2A800A] text-white rounded-lg hover:bg-[#256E08]"
-                >
-                  Ajouter
-                </Link>
-              </div>
-            )}
-          </div>
+
+                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                    {tournaments.length > 0 ? (
+                    tournaments.map((t) => (
+                        <Link 
+                        key={t.id}
+                        to={`/organizer/tournaments/${t.id}`}
+                        className="block p-4 bg-white rounded-lg border border-[#D0D0D0] hover:bg-[#EDEDED] transition group"
+                        >
+                        <div className="flex items-center justify-between">
+                            <div>
+                            <h3 className="font-bold text-[#2A800A] group-hover:text-green-700">{t.name}</h3>
+                            <div className="flex gap-3 text-sm text-[#737572] mt-1">
+                                <span>{t.city}</span>
+                                <span>•</span>
+                                <span>{t.sport}</span>
+                            </div>
+                            </div>
+                            
+                            <ArrowRight className="h-5 w-5 text-[#D0D0D0] group-hover:text-[#2A800A]" />
+                        </div>
+                        </Link>
+                    ))
+                    ) : (
+                    <p className="text-center py-8 text-[#737572]">Aucun tournoi.</p>
+                    )}
+                </div>
+            </div>
+
+            {/* Teams List */}
+            <div className="bg-[#F2F2F2] rounded-xl border border-[#D0D0D0] p-6 shadow-sm">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold text-[#2A800A]">Mes Équipes</h2>
+                    <Link 
+                    to="/organizer/teams/create" 
+                    className="text-sm text-[#2A800A] hover:underline font-medium"
+                    >
+                    + Ajouter
+                    </Link>
+                </div>
+
+                <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                    {teams.length > 0 ? (
+                    teams.map((t) => (
+                        <Link 
+                        key={t.id}
+                        to={`/teams/${t.id}`}
+                        className="block p-4 bg-white rounded-lg border border-[#D0D0D0] hover:bg-[#EDEDED] transition group"
+                        >
+                        <div className="flex items-center justify-between">
+                            <div>
+                            <h3 className="font-bold text-[#2A800A] group-hover:text-green-700">{t.name}</h3>
+                            <div className="text-sm text-[#737572] mt-1">
+                                Tournoi: {tournaments.find(tour => tour.id === t.tournament)?.name || 'Inconnu'}
+                            </div>
+                            </div>
+                            
+                            <div className="text-right">
+                            <span className="block text-xl font-bold text-[#2A800A]">
+                                {t.current_capacity}/{t.max_capacity}
+                            </span>
+                            <span className="text-xs text-[#737572]">Joueurs</span>
+                            </div>
+                        </div>
+                        </Link>
+                    ))
+                    ) : (
+                    <p className="text-center py-8 text-[#737572]">Aucune équipe.</p>
+                    )}
+                </div>
+            </div>
+
         </div>
 
-      </div>
+        {/* RIGHT COLUMN: Calendar & Quick Actions */}
+        <div className="space-y-8">
+            
+            {/* Calendar Widget */}
+            <div className="bg-[#F2F2F2] rounded-xl border border-[#D0D0D0] p-6 shadow-sm">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-bold text-[#2A800A]">Calendrier</h2>
+                    <Link to="/organizer/matches" className="text-xs text-[#737572] hover:text-[#2A800A]">Voir tout</Link>
+                </div>
+                <div className="bg-white rounded-lg border border-[#D0D0D0] overflow-hidden">
+                    <MatchesCalendar compact={true} />
+                </div>
+            </div>
 
-      {/* Quick Actions Row */}
-      <div className="grid md:grid-cols-3 gap-6">
-         <Link 
-           to="/organizer/matches"
-           className="flex items-center justify-center gap-3 p-4 bg-[#F2F2F2] hover:bg-[#EAEAEA] rounded-xl border border-[#D0D0D0] text-[#2A800A] font-medium transition shadow-sm"
-         >
-           <Trophy className="h-5 w-5" /> Gérer les Matchs
-         </Link>
+            {/* Quick Actions */}
+            <div className="bg-[#F2F2F2] rounded-xl border border-[#D0D0D0] p-6 shadow-sm">
+                <h2 className="text-lg font-bold text-[#2A800A] mb-4">Actions Rapides</h2>
+                <div className="space-y-3">
+                    <Link 
+                        to="/organizer/matches"
+                        className="flex items-center justify-between p-3 bg-white hover:bg-[#EAEAEA] rounded-lg border border-[#D0D0D0] text-[#2A800A] font-medium transition"
+                    >
+                        <div className="flex items-center gap-3">
+                            <Trophy className="h-5 w-5" /> Gérer les Matchs
+                        </div>
+                        <ArrowRight className="h-4 w-4 text-[#D0D0D0]" />
+                    </Link>
 
-         <Link 
-           to="/organizer/requests"
-           className="flex items-center justify-center gap-3 p-4 bg-[#F2F2F2] hover:bg-[#EAEAEA] rounded-xl border border-[#D0D0D0] text-[#2A800A] font-medium transition shadow-sm"
-         >
-           <Users className="h-5 w-5" /> Gérer les Demandes
-         </Link>
+                    <Link 
+                        to="/organizer/requests"
+                        className="flex items-center justify-between p-3 bg-white hover:bg-[#EAEAEA] rounded-lg border border-[#D0D0D0] text-[#2A800A] font-medium transition"
+                    >
+                        <div className="flex items-center gap-3">
+                            <Users className="h-5 w-5" /> Gérer les Demandes
+                        </div>
+                        <span className="bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-1 rounded-full">
+                            {stats?.requests || 0}
+                        </span>
+                    </Link>
 
-         <Link 
-           to="/organizer/tournaments"
-           className="flex items-center justify-center gap-3 p-4 bg-[#F2F2F2] hover:bg-[#EAEAEA] rounded-xl border border-[#D0D0D0] text-[#2A800A] font-medium transition shadow-sm"
-         >
-           <Activity className="h-5 w-5" /> Voir toutes les stats
-         </Link>
+                    <Link 
+                        to="/organizer/tournaments"
+                        className="flex items-center justify-between p-3 bg-white hover:bg-[#EAEAEA] rounded-lg border border-[#D0D0D0] text-[#2A800A] font-medium transition"
+                    >
+                        <div className="flex items-center gap-3">
+                            <Activity className="h-5 w-5" /> Voir toutes les stats
+                        </div>
+                        <ArrowRight className="h-4 w-4 text-[#D0D0D0]" />
+                    </Link>
+                </div>
+            </div>
+
+        </div>
+
       </div>
 
     </div>

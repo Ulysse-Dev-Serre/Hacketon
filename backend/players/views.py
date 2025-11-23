@@ -62,3 +62,36 @@ class PlayerProfileView(APIView):
         data = serializer.data
         data['full_name'] = request.user.full_name # On ajoute le nom mis à jour à la réponse
         return Response(data)
+
+class PublicPlayerProfileView(viewsets.ReadOnlyModelViewSet):
+    """
+    Public view for player profiles.
+    Lookup by user_id.
+    """
+    queryset = PlayerProfile.objects.all()
+    serializer_class = PlayerProfileSerializer
+    permission_classes = [IsAuthenticatedCustom]
+    lookup_field = 'user__id'
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            return super().retrieve(request, *args, **kwargs)
+        except:
+             # If profile doesn't exist for this user, return basic info from User model
+            # This handles cases where a user exists but hasn't created a profile yet
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            user_id = kwargs.get('user__id')
+            try:
+                user = User.objects.get(id=user_id)
+                return Response({
+                    'id': None,
+                    'user_id': user.id,
+                    'full_name': user.full_name,
+                    'city': 'Non renseigné',
+                    'favorite_sport': 'Non renseigné',
+                    'level': 'Non renseigné',
+                    'position': 'Non renseigné'
+                })
+            except User.DoesNotExist:
+                return Response({"error": "User not found"}, status=404)

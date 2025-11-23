@@ -19,23 +19,36 @@ const MatchCreate = () => {
   });
 
   useEffect(() => {
-    // TODO : récupérer les tournois depuis API
-    setTournaments([
-      { id: 1, name: 'Summer Cup 2025' },
-      { id: 2, name: 'Winter League' }
-    ]);
+    const fetchTournaments = async () => {
+      try {
+        const response = await api.get('/tournaments/mine/');
+        setTournaments(response.data);
+      } catch (error) {
+        console.error('Error fetching tournaments:', error);
+      }
+    };
+    fetchTournaments();
   }, []);
 
   useEffect(() => {
-    if (formData.tournamentId) {
-      // TODO : récupérer les équipes du tournoi sélectionné
-      setTeams([
-        { id: 1, name: 'Paris United' },
-        { id: 2, name: 'Lyon Warriors' },
-        { id: 3, name: 'Marseille Titans' },
-        { id: 4, name: 'Bordeaux Eagles' }
-      ]);
-    }
+    const fetchTeams = async () => {
+        if (formData.tournamentId) {
+            try {
+                // We need to fetch teams for this specific tournament.
+                // Assuming there is an endpoint or we can filter /teams/mine/
+                // Since /teams/mine/ returns all teams for the organizer, we can filter client-side
+                // OR better, fetch specific tournament details which includes teams.
+                const response = await api.get(`/tournaments/${formData.tournamentId}/`);
+                setTeams(response.data.teams || []);
+            } catch (error) {
+                console.error('Error fetching teams:', error);
+                setTeams([]);
+            }
+        } else {
+            setTeams([]);
+        }
+    };
+    fetchTeams();
   }, [formData.tournamentId]);
 
 
@@ -46,8 +59,8 @@ const MatchCreate = () => {
 
     try {
       await api.post('/matches/', {
-        team_a: formData.team_a,
-        team_b: formData.team_b,
+        team_a_id: formData.team_a,
+        team_b_id: formData.team_b,
         date: dateTime.toISOString(),
         location: formData.location
       });
@@ -101,7 +114,7 @@ const MatchCreate = () => {
             >
               <option value="">Sélectionner</option>
               {teams
-                .filter(t => t.id !== parseInt(formData.team_b))
+                .filter(t => t.id !== formData.team_b)
                 .map(t => <option key={t.id} value={t.id}>{t.name}</option>)
               }
             </select>
@@ -118,7 +131,7 @@ const MatchCreate = () => {
             >
               <option value="">Sélectionner</option>
               {teams
-                .filter(t => t.id !== parseInt(formData.team_a))
+                .filter(t => t.id !== formData.team_a)
                 .map(t => <option key={t.id} value={t.id}>{t.name}</option>)
               }
             </select>
