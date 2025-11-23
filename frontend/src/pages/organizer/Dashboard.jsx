@@ -7,19 +7,22 @@ const Dashboard = () => {
   const api = useApi();
   const [stats, setStats] = useState(null);
   const [tournaments, setTournaments] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Parallel fetch for speed
-        const [statsRes, tournamentsRes] = await Promise.all([
+        const [statsRes, tournamentsRes, teamsRes] = await Promise.all([
           api.get('/organizer/dashboard/'),
-          api.get('/tournaments/mine/')
+          api.get('/tournaments/mine/'),
+          api.get('/teams/mine/')
         ]);
         
         setStats(statsRes.data.stats);
         setTournaments(tournamentsRes.data);
+        setTeams(teamsRes.data);
       } catch (error) {
         console.error("Erreur chargement Dashboard :", error);
       } finally {
@@ -83,10 +86,10 @@ const Dashboard = () => {
       )}
 
       {/* Recent Activity / Quick Actions */}
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid lg:grid-cols-2 gap-8">
 
         {/* Tournaments List (Full) */}
-        <div className="lg:col-span-2 bg-[#F2F2F2] rounded-xl border border-[#D0D0D0] p-6 shadow-sm">
+        <div className="bg-[#F2F2F2] rounded-xl border border-[#D0D0D0] p-6 shadow-sm">
 
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-[#2A800A]">Mes Tournois</h2>
@@ -94,11 +97,11 @@ const Dashboard = () => {
               to="/organizer/tournaments/create" 
               className="text-sm text-[#2A800A] hover:underline font-medium"
             >
-              + Créer nouveau
+              + Créer
             </Link>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
             {tournaments.length > 0 ? (
               tournaments.map((t) => (
                 <Link 
@@ -113,63 +116,103 @@ const Dashboard = () => {
                         <span>{t.city}</span>
                         <span>•</span>
                         <span>{t.sport}</span>
-                        <span>•</span>
-                        <span>{new Date(t.start_date).toLocaleDateString()}</span>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-4">
-                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-300">
-                        En cours
-                      </span>
-                      
-                      <ArrowRight className="h-5 w-5 text-[#D0D0D0] group-hover:text-[#2A800A]" />
-                    </div>
+                    
+                    <ArrowRight className="h-5 w-5 text-[#D0D0D0] group-hover:text-[#2A800A]" />
                   </div>
                 </Link>
               ))
             ) : (
               <div className="text-center py-8">
-                <p className="text-[#737572] mb-4">Vous n'avez pas encore de tournoi.</p>
+                <p className="text-[#737572] mb-4">Aucun tournoi.</p>
                 <Link 
                   to="/organizer/tournaments/create" 
                   className="inline-block px-4 py-2 bg-[#2A800A] text-white rounded-lg hover:bg-[#256E08]"
                 >
-                  Créer mon premier tournoi
+                  Créer
                 </Link>
               </div>
             )}
           </div>
         </div>
 
-        {/* Quick Actions */}
+        {/* Teams List (New Section) */}
         <div className="bg-[#F2F2F2] rounded-xl border border-[#D0D0D0] p-6 shadow-sm">
-          <h2 className="text-xl font-bold text-[#2A800A] mb-6">Actions Rapides</h2>
 
-          <div className="space-y-3">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-[#2A800A]">Mes Équipes</h2>
             <Link 
-              to="/organizer/matches"
-              className="block w-full p-3 bg-white hover:bg-[#EDEDED] rounded-lg border border-[#D0D0D0] text-[#737572] transition"
+              to="/organizer/teams/create" 
+              className="text-sm text-[#2A800A] hover:underline font-medium"
             >
-              Saisir un score de match
+              + Ajouter
             </Link>
+          </div>
 
-            <Link 
-              to="/organizer/requests"
-              className="block w-full p-3 bg-white hover:bg-[#EDEDED] rounded-lg border border-[#D0D0D0] text-[#737572] transition"
-            >
-              Gérer les demandes
-            </Link>
-
-            <Link 
-              to="/organizer/teams/create"
-              className="block w-full p-3 bg-white hover:bg-[#EDEDED] rounded-lg border border-[#D0D0D0] text-[#737572] transition"
-            >
-              Enregistrer une équipe
-            </Link>
+          <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+            {teams.length > 0 ? (
+              teams.map((t) => (
+                <div 
+                  key={t.id}
+                  className="p-4 bg-white rounded-lg border border-[#D0D0D0]"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-bold text-[#2A800A]">{t.name}</h3>
+                      <div className="text-sm text-[#737572] mt-1">
+                        {/* On essaie de retrouver le nom du tournoi, sinon on affiche l'ID ou rien */}
+                        Tournoi: {tournaments.find(tour => tour.id === t.tournament)?.name || 'Inconnu'}
+                      </div>
+                    </div>
+                    
+                    <div className="text-right">
+                      <span className="block text-xl font-bold text-[#2A800A]">
+                        {t.current_capacity}/{t.max_capacity}
+                      </span>
+                      <span className="text-xs text-[#737572]">Joueurs</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-[#737572] mb-4">Aucune équipe.</p>
+                <Link 
+                  to="/organizer/teams/create" 
+                  className="inline-block px-4 py-2 bg-[#2A800A] text-white rounded-lg hover:bg-[#256E08]"
+                >
+                  Ajouter
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 
+      </div>
+
+      {/* Quick Actions Row */}
+      <div className="grid md:grid-cols-3 gap-6">
+         <Link 
+           to="/organizer/matches"
+           className="flex items-center justify-center gap-3 p-4 bg-[#F2F2F2] hover:bg-[#EAEAEA] rounded-xl border border-[#D0D0D0] text-[#2A800A] font-medium transition shadow-sm"
+         >
+           <Trophy className="h-5 w-5" /> Gérer les Matchs
+         </Link>
+
+         <Link 
+           to="/organizer/requests"
+           className="flex items-center justify-center gap-3 p-4 bg-[#F2F2F2] hover:bg-[#EAEAEA] rounded-xl border border-[#D0D0D0] text-[#2A800A] font-medium transition shadow-sm"
+         >
+           <Users className="h-5 w-5" /> Gérer les Demandes
+         </Link>
+
+         <Link 
+           to="/organizer/tournaments"
+           className="flex items-center justify-center gap-3 p-4 bg-[#F2F2F2] hover:bg-[#EAEAEA] rounded-xl border border-[#D0D0D0] text-[#2A800A] font-medium transition shadow-sm"
+         >
+           <Activity className="h-5 w-5" /> Voir toutes les stats
+         </Link>
       </div>
 
     </div>

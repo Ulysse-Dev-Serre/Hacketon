@@ -1,14 +1,14 @@
 ```plaintext
 AUTHENTICATION
-└── GET /api/auth/me/    Get current user info🔄
+└── GET /api/auth/me/    Get current user info🔄 
 
 PROFILES
-├── GET   /api/player/profile/    My player profile🔄
-└── PATCH /api/player/profile/    Update profile🔄
+├── GET   /api/player/profile/    My player profile🔄 
+└── PATCH /api/player/profile/    Update profile🔄 
 
 TOURNAMENTS
 ├── POST /api/tournaments/        Create a tournament✅
-├── GET  /api/tournaments/mine/   My tournaments🔄
+├── GET  /api/tournaments/mine/   My tournaments🔄 
 ├── GET  /api/tournaments/:id/    Tournament details✅
 └── GET  /api/tournaments/         All tournaments (with filters)✅🆕
        ├──?city={city_name}       Filter by city✅🆕
@@ -25,10 +25,10 @@ TEAMS
 └── GET  /api/teams/              All teams✅
 
 JOIN REQUESTS
-├── POST  /api/join-requests/           Send a join request
-├── GET   /api/join-requests/my/        My join requests
-├── GET   /api/join-requests/received/  Received requests (organizer)
-└── PATCH /api/join-requests/:id/       Accept/Reject request
+├── POST  /api/join-requests/           Send a join request                  Ulysse
+├── GET   /api/join-requests/my/        My join requests                     Ulysse
+├── GET   /api/join-requests/received/  Received requests (organizer)          Ulysse 
+└── PATCH /api/join-requests/:id/       Accept/Reject request                Ulysse
 
 MATCHES
 ├── POST  /api/matches/           Create a match🔄

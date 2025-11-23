@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { User, MapPin, Phone, Mail, Edit, Shield, Save, X, ClipboardList } from 'lucide-react';
+import { User, MapPin, Mail, Edit, Shield, Save, X, ClipboardList } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
 import useApi from '../../api/axios';
 
@@ -17,7 +17,6 @@ const Profile = () => {
     level: 'beginner',
     position: '',
     bio: '',
-    phone: ''
   });
 
   useEffect(() => {
@@ -39,7 +38,6 @@ const Profile = () => {
              level: dbProfile.level || user.unsafeMetadata?.level || 'beginner',
              position: dbProfile.position || user.unsafeMetadata?.position || '',
              bio: user.unsafeMetadata?.bio || '',  // Bio is only in Clerk for now (model doesn't have it)
-             phone: user.unsafeMetadata?.phone || '', // Phone only in Clerk
            }));
            
            // If no profile data yet, go to edit mode
@@ -80,7 +78,6 @@ const Profile = () => {
         unsafeMetadata: {
           ...user.unsafeMetadata,
           city: formData.city,
-          phone: formData.phone,
           bio: formData.bio,
           favorite_sport: formData.favorite_sport,
           level: formData.level,
@@ -202,16 +199,6 @@ const Profile = () => {
                         className="w-full bg-gray-100 border border-[#D0D0D0] rounded px-3 py-2 text-gray-500"
                       />
                     </div>
-
-                    <div>
-                      <label className="block text-sm text-gray-600 mb-1">Téléphone</label>
-                      <input
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        className="w-full bg-white border border-[#D0D0D0] rounded px-3 py-2 text-gray-700"
-                      />
-                    </div>
                   </div>
                 ) : (
                   <div className="space-y-3 text-gray-700">
@@ -223,11 +210,6 @@ const Profile = () => {
                     <div className="flex items-center gap-3">
                       <Mail className="h-5 w-5 text-[#2A800A]" />
                       <span>{user?.primaryEmailAddress?.emailAddress}</span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <Phone className="h-5 w-5 text-[#2A800A]" />
-                      <span>{formData.phone || 'Non renseigné'}</span>
                     </div>
                   </div>
                 )}

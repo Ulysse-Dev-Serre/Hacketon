@@ -42,8 +42,19 @@ class PlayerProfileView(APIView):
             profile = PlayerProfile.objects.get(user=request.user)
         except PlayerProfile.DoesNotExist:
             return Response({"error": "Player profile not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # 1. Mise à jour du User (full_name) si fourni
+        full_name = request.data.get('full_name')
+        if full_name:
+            request.user.full_name = full_name
+            request.user.save()
+
+        # 2. Mise à jour du Profile
         serializer = PlayerProfileSerializer(profile, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        
+        # 3. On renvoie les données combinées
         data = serializer.data
+        data['full_name'] = request.user.full_name # On ajoute le nom mis à jour à la réponse
         return Response(data)

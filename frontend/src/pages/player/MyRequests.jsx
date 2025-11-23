@@ -11,7 +11,7 @@ const MyRequests = () => {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const response = await api.get('/requests/my-requests/'); // 🔥 ton endpoint Django
+        const response = await api.get('/join-requests/my-requests/'); 
         setRequests(response.data);
       } catch (error) {
         console.error('Erreur chargement requêtes :', error);
@@ -50,9 +50,9 @@ const MyRequests = () => {
             >
               {/* Team Information */}
               <div>
-                <h3 className="text-lg font-bold text-[#2A800A]">{request.team.name}</h3>
+                <h3 className="text-lg font-bold text-[#2A800A]">{request.team_details?.name || 'Équipe inconnue'}</h3>
                 <p className="text-[#737572] text-sm">
-                  Demande envoyée le {request.created_at}
+                  Demande envoyée le {new Date(request.created_at).toLocaleDateString()}
                 </p>
               </div>
 

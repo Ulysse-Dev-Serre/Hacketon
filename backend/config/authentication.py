@@ -74,8 +74,9 @@ class ClerkAuthentication(authentication.BaseAuthentication):
                  full_name = f"{first} {last}".strip()
         
         if not full_name:
-            # Fallback sur la partie locale de l'email
-            full_name = email.split('@')[0]
+            # Si pas de nom, on garde l'existant en base s'il est "valide" (pas un ID clerk)
+            # Sinon on fallback sur l'email
+            pass
 
         # Synchronisation DB
         try:
@@ -83,7 +84,7 @@ class ClerkAuthentication(authentication.BaseAuthentication):
                 clerk_id=clerk_id,
                 defaults={
                     'email': email,
-                    'full_name': full_name,
+                    'full_name': full_name or email.split('@')[0], # Fallback initial
                     'role': 'player'
                 }
             )
@@ -96,6 +97,9 @@ class ClerkAuthentication(authentication.BaseAuthentication):
                     user.email = email
                     save_needed = True
                 
+                # On ne met à jour le nom que si on en a reçu un VRAI depuis Clerk
+                # et qu'il est différent de celui en base.
+                # Cela évite d'écraser un nom correct en base par "None" ou par un ID si Clerk renvoie rien.
                 if full_name and user.full_name != full_name:
                     user.full_name = full_name
                     save_needed = True

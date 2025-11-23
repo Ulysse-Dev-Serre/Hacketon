@@ -15,6 +15,14 @@ const TeamCreate = () => {
   });
 
   useEffect(() => {
+    // Si l'ID du tournoi est passé dans l'URL (ex: ?tournament=123)
+    const searchParams = new URLSearchParams(window.location.search);
+    const tournamentParam = searchParams.get('tournament');
+    
+    if (tournamentParam) {
+      setFormData(prev => ({ ...prev, tournamentId: tournamentParam }));
+    }
+
     const fetchTournaments = async () => {
       try {
         const response = await api.get('/tournaments/mine/');
@@ -35,7 +43,7 @@ const TeamCreate = () => {
     try {
       await api.post('/teams/', {
         name: formData.name,
-        tournament_id: formData.tournamentId,
+        tournament: formData.tournamentId, // Correct field name for serializer
         max_capacity: parseInt(formData.maxMembers),
         description: formData.description
       });

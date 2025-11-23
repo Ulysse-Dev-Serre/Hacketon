@@ -14,49 +14,49 @@ const TeamDetails = () => {
   const [joinMessage, setJoinMessage] = useState('');
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [existingRequest, setExistingRequest] = useState(null); // Stocke l'état de la demande existante
 
   // Check if current user is the organizer of the team (simplified check)
   // Ideally, the backend should tell us permissions, or we check team.tournament.organizer_id
   const isOrganizer = user?.unsafeMetadata?.role === 'organizer'; 
 
   useEffect(() => {
-    const fetchTeamDetails = async () => {
-      try {
-        const response = await api.get(`/teams/${id}/`);
-        setTeam(response.data);
-      } catch (error) {
-        console.error('Error fetching team details:', error);
-        // Mock data
-        setTeam({
-            id: id,
-            name: 'Paris United',
-            description: 'Équipe amateur de haut niveau cherchant à monter en division régionale. Ambiance sérieuse mais conviviale.',
-            city: 'Paris, France',
-            sport: 'Football',
-            level: 'Amateur Compétitif', // Note: Add 'level' to backend model if needed, or derive
-            tournament: { name: 'Summer Cup 2025' },
-            members: [
-              { id: 1, full_name: 'Jean Dupont', role: 'Capitaine' }, // role mock
-              { id: 2, full_name: 'Marc Martin', role: 'Joueur' },
-              { id: 3, full_name: 'Paul Durand', role: 'Joueur' },
-            ],
-            current_capacity: 12,
-            max_capacity: 15,
-            stats: { matches: 12, wins: 8, losses: 4 } // Mock stats
-        });
-      } finally {
-        setIsLoading(false);
+  const fetchTeamDetails = async () => {
+    try {
+      // 1. Fetch Team Details
+      const response = await api.get(`/teams/${id}/`);
+      setTeam(response.data);
+
+      // 2. Check if user has already sent a request (Parallel check)
+      if (user && !isOrganizer) {
+          try {
+              const reqRes = await api.get('/join-requests/my-requests/');
+              // On cherche si une demande existe pour CETTE équipe
+              const myReq = reqRes.data.find(r => r.team === id); // Note: r.team est l'ID dans le modèle
+              if (myReq) {
+                  setExistingRequest(myReq);
+              }
+          } catch (err) {
+              console.error("Error checking existing requests:", err);
+          }
       }
-    };
-    fetchTeamDetails();
-  }, [id]);
+
+    } catch (error) {
+      console.error('Error fetching team details:', error);
+      // ... mock data fallback (omitted for brevity)
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  fetchTeamDetails();
+  }, [id, user, isOrganizer]);
 
   const handleJoinRequest = async (e) => {
     e.preventDefault();
     setIsSending(true);
     try {
         await api.post('/join-requests/', {
-            team_id: id,
+            team: id, // Changed from team_id to team to match backend expectation
             message: joinMessage
         });
         alert('Demande envoyée avec succès !');
@@ -81,24 +81,24 @@ const TeamDetails = () => {
       }
   };
 
-  if (isLoading) return <div className="text-white text-center py-10">Chargement...</div>;
-  if (!team) return <div className="text-white text-center py-10">Équipe introuvable.</div>;
+  if (isLoading) return <div className="text-[#737572] text-center py-10">Chargement...</div>;
+  if (!team) return <div className="text-[#737572] text-center py-10">Équipe introuvable.</div>;
 
   return (
     <div className="max-w-4xl mx-auto py-6 relative">
       {/* Header */}
-      <div className="bg-slate-900 rounded-2xl border border-slate-800 p-8 mb-8">
+      <div className="bg-[#F2F2F2] rounded-2xl border border-[#D0D0D0] p-8 mb-8 shadow-sm">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="flex items-center gap-6">
-            <div className="h-20 w-20 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-bold text-3xl shadow-lg shadow-indigo-500/20">
+            <div className="h-20 w-20 bg-[#2A800A] rounded-xl flex items-center justify-center text-white font-bold text-3xl shadow-lg shadow-green-500/20">
               {team.name.substring(0, 2).toUpperCase()}
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">{team.name}</h1>
-              <div className="flex flex-wrap items-center gap-4 text-slate-400 text-sm">
+              <h1 className="text-3xl font-bold text-[#2A800A] mb-2">{team.name}</h1>
+              <div className="flex flex-wrap items-center gap-4 text-[#737572] text-sm">
                 <span className="flex items-center gap-1"><MapPin className="h-4 w-4" /> {team.city}</span>
                 <span className="flex items-center gap-1"><Trophy className="h-4 w-4" /> {team.tournament?.name}</span>
-                <span className="flex items-center gap-1 text-indigo-400 font-medium">
+                <span className="flex items-center gap-1 text-[#2A800A] font-medium">
                     <Users className="h-4 w-4" /> {team.current_capacity} / {team.max_capacity} Places
                 </span>
               </div>
@@ -107,28 +107,46 @@ const TeamDetails = () => {
           
           {isOrganizer ? (
               <div className="flex gap-2">
-                  <button className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors border border-slate-700">
+                  <button className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-gray-50 text-[#737572] rounded-lg transition-colors border border-[#D0D0D0]">
                       <Edit className="h-4 w-4" /> Modifier
                   </button>
                   <button 
                     onClick={handleDelete}
-                    className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors border border-red-500/20"
+                    className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors border border-red-200"
                   >
                       <Trash2 className="h-4 w-4" /> Supprimer
                   </button>
               </div>
           ) : (
-            <button 
-                onClick={() => setShowJoinModal(true)}
-                disabled={team.current_capacity >= team.max_capacity}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors shadow-lg ${
-                    team.current_capacity >= team.max_capacity 
-                    ? 'bg-slate-700 text-slate-400 cursor-not-allowed' 
-                    : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/20'
-                }`}
-            >
-                <UserPlus className="h-5 w-5" /> {team.current_capacity >= team.max_capacity ? 'Complet' : 'Rejoindre'}
-            </button>
+            <div>
+                {/* Logique d'affichage du bouton ou du badge */}
+                {existingRequest ? (
+                    <div className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium border ${
+                        existingRequest.status === 'accepted' 
+                        ? 'bg-green-100 text-green-800 border-green-200' 
+                        : existingRequest.status === 'rejected'
+                        ? 'bg-red-100 text-red-800 border-red-200'
+                        : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                    }`}>
+                        {existingRequest.status === 'accepted' ? <Users className="h-5 w-5"/> : <UserPlus className="h-5 w-5"/>}
+                        {existingRequest.status === 'pending' && 'Demande en attente'}
+                        {existingRequest.status === 'accepted' && 'Membre de l\'équipe'}
+                        {existingRequest.status === 'rejected' && 'Demande refusée'}
+                    </div>
+                ) : (
+                    <button 
+                        onClick={() => setShowJoinModal(true)}
+                        disabled={team.current_capacity >= team.max_capacity}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors shadow-lg ${
+                            team.current_capacity >= team.max_capacity 
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                            : 'bg-[#2A800A] hover:bg-[#256E08] text-white shadow-green-500/20'
+                        }`}
+                    >
+                        <UserPlus className="h-5 w-5" /> {team.current_capacity >= team.max_capacity ? 'Complet' : 'Rejoindre'}
+                    </button>
+                )}
+            </div>
           )}
         </div>
       </div>
@@ -136,50 +154,50 @@ const TeamDetails = () => {
       <div className="grid md:grid-cols-3 gap-8">
         {/* Main Content */}
         <div className="md:col-span-2 space-y-8">
-          <div className="bg-slate-900 rounded-xl border border-slate-800 p-6">
-            <h2 className="text-xl font-bold text-white mb-4">À propos</h2>
-            <p className="text-slate-400 leading-relaxed">{team.description || "Aucune description disponible."}</p>
+          <div className="bg-[#F2F2F2] rounded-xl border border-[#D0D0D0] p-6 shadow-sm">
+            <h2 className="text-xl font-bold text-[#2A800A] mb-4">À propos</h2>
+            <p className="text-[#4A4A4A] leading-relaxed">{team.description || "Aucune description disponible."}</p>
           </div>
 
-          <div className="bg-slate-900 rounded-xl border border-slate-800 p-6">
-            <h2 className="text-xl font-bold text-white mb-4">Effectif ({team.members.length})</h2>
+          <div className="bg-[#F2F2F2] rounded-xl border border-[#D0D0D0] p-6 shadow-sm">
+            <h2 className="text-xl font-bold text-[#2A800A] mb-4">Effectif ({team.members.length})</h2>
             <div className="space-y-4">
               {team.members.map((member) => (
-                <div key={member.id} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
+                <div key={member.id} className="flex items-center justify-between p-3 bg-white border border-[#D0D0D0] rounded-lg">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-300 font-bold">
+                    <div className="h-10 w-10 rounded-full bg-[#EAEAEA] flex items-center justify-center text-[#2A800A] font-bold">
                       {member.full_name?.charAt(0) || 'U'}
                     </div>
                     <div>
-                      <p className="font-medium text-white">{member.full_name}</p>
+                      <p className="font-medium text-[#4A4A4A]">{member.full_name}</p>
                       {/* Role display can be added if backend provides it */}
                     </div>
                   </div>
                 </div>
               ))}
-              {team.members.length === 0 && <p className="text-slate-500 italic">Aucun joueur pour le moment.</p>}
+              {team.members.length === 0 && <p className="text-[#737572] italic">Aucun joueur pour le moment.</p>}
             </div>
           </div>
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
-          <div className="bg-slate-900 rounded-xl border border-slate-800 p-6">
-            <h2 className="text-lg font-bold text-white mb-4">Statistiques</h2>
+          <div className="bg-[#F2F2F2] rounded-xl border border-[#D0D0D0] p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-[#2A800A] mb-4">Statistiques</h2>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-slate-400">Matchs joués</span>
-                <span className="text-white font-bold">{team.stats?.matches || 0}</span>
+                <span className="text-[#737572]">Matchs joués</span>
+                <span className="text-[#2A800A] font-bold">{team.stats?.matches || 0}</span>
               </div>
-              <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                <div className="bg-slate-600 h-full" style={{ width: '100%' }}></div>
+              <div className="w-full bg-[#EAEAEA] h-2 rounded-full overflow-hidden">
+                <div className="bg-[#2A800A] h-full" style={{ width: '100%' }}></div>
               </div>
               
               <div className="flex justify-between items-center">
-                <span className="text-slate-400">Victoires</span>
-                <span className="text-green-400 font-bold">{team.stats?.wins || 0}</span>
+                <span className="text-[#737572]">Victoires</span>
+                <span className="text-green-600 font-bold">{team.stats?.wins || 0}</span>
               </div>
-              <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+              <div className="w-full bg-[#EAEAEA] h-2 rounded-full overflow-hidden">
                 <div className="bg-green-500 h-full" style={{ width: `${team.stats?.matches ? (team.stats.wins / team.stats.matches) * 100 : 0}%` }}></div>
               </div>
             </div>
@@ -189,14 +207,14 @@ const TeamDetails = () => {
 
       {/* Join Request Modal */}
       {showJoinModal && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-              <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 w-full max-w-md">
-                  <h2 className="text-xl font-bold text-white mb-4">Rejoindre {team.name}</h2>
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+              <div className="bg-white border border-[#D0D0D0] rounded-xl p-6 w-full max-w-md shadow-lg">
+                  <h2 className="text-xl font-bold text-[#2A800A] mb-4">Rejoindre {team.name}</h2>
                   <form onSubmit={handleJoinRequest}>
                       <div className="mb-4">
-                          <label className="block text-sm text-slate-400 mb-2">Message pour l'organisateur (Optionnel)</label>
+                          <label className="block text-sm text-[#737572] mb-2">Message pour l'organisateur (Optionnel)</label>
                           <textarea 
-                              className="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-white focus:border-indigo-500 outline-none h-32"
+                              className="w-full bg-[#F2F2F2] border border-[#D0D0D0] rounded-lg p-3 text-[#4A4A4A] focus:border-[#2A800A] focus:outline-none h-32"
                               placeholder="Présentez-vous brièvement..."
                               value={joinMessage}
                               onChange={(e) => setJoinMessage(e.target.value)}
@@ -206,14 +224,14 @@ const TeamDetails = () => {
                           <button 
                               type="button"
                               onClick={() => setShowJoinModal(false)}
-                              className="px-4 py-2 text-slate-300 hover:text-white transition-colors"
+                              className="px-4 py-2 text-[#737572] hover:text-[#4A4A4A] transition-colors"
                           >
                               Annuler
                           </button>
                           <button 
                               type="submit"
                               disabled={isSending}
-                              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                              className="px-4 py-2 bg-[#2A800A] hover:bg-[#256E08] text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                           >
                               {isSending ? 'Envoi...' : 'Envoyer la demande'}
                           </button>

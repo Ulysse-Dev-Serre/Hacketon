@@ -49,6 +49,7 @@ python manage.py createsuperuser
 
 ### Lancer le serveur Django
 python manage.py runserver
+
 Accessible sur http://127.0.0.1:8000
 
 # frontend

@@ -155,12 +155,19 @@ class TeamViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def mine(self, request):
         """
-        Check which teams the current user is a part of.
+        Check which teams the current user is a part of OR manages (as organizer).
 
         GET /api/teams/mine/
         """
-        user_teams = Team.objects.filter(members=request.user)
-        serializer = self.get_serializer(user_teams, many=True)
+        if request.user.role == 'organizer':
+            # Si organisateur, on renvoie les équipes de SES tournois
+            # Filter teams linked to tournaments created by this user
+            teams = Team.objects.filter(tournament__organizer=request.user)
+        else:
+            # Si joueur, on renvoie les équipes où il est membre
+            teams = Team.objects.filter(members=request.user)
+            
+        serializer = self.get_serializer(teams, many=True)
         data = serializer.data
         return Response(data)
     @action(detail=False, methods=['get'])

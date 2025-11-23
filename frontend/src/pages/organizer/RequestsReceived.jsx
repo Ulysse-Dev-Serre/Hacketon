@@ -11,8 +11,13 @@ const RequestsReceived = () => {
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const res = await api.get('/teams/requests/received/');
-        setRequests(res.data);
+        // On filtre uniquement les requêtes 'pending' (en attente) côté backend ou ici
+        // Le viewSet renvoie tout si on ne filtre pas, mais le filtrage par défaut du viewSet
+        // renvoie toutes les demandes pour les tournois de l'organisateur.
+        const res = await api.get('/join-requests/'); 
+        // On ne garde que celles en attente
+        const pending = res.data.filter(r => r.status === 'pending');
+        setRequests(pending);
       } catch (error) {
         console.error("Erreur lors du chargement des demandes :", error);
       } finally {
@@ -26,20 +31,24 @@ const RequestsReceived = () => {
   // Accept a request
   const handleAccept = async (id) => {
     try {
-      await api.post(`/teams/requests/${id}/accept/`);
+      // Endpoint PATCH /api/join-requests/{id}/respond/
+      await api.post(`/join-requests/${id}/respond/`, { action: 'accept' });
       setRequests((prev) => prev.filter((req) => req.id !== id));
+      alert("Joueur accepté !");
     } catch (error) {
       console.error("Erreur acceptation :", error);
+      alert("Erreur lors de l'acceptation");
     }
   };
 
   // Reject a request
   const handleReject = async (id) => {
     try {
-      await api.post(`/teams/requests/${id}/reject/`);
+      await api.post(`/join-requests/${id}/respond/`, { action: 'reject' });
       setRequests((prev) => prev.filter((req) => req.id !== id));
     } catch (error) {
       console.error("Erreur refus :", error);
+      alert("Erreur lors du refus");
     }
   };
 
@@ -65,12 +74,15 @@ const RequestsReceived = () => {
               </div>
 
               <div>
-                <h3 className="text-lg font-bold text-[#2A800A]">{request.playerName}</h3>
+                <h3 className="text-lg font-bold text-[#2A800A]">
+                    {request.player_details?.full_name || request.player_details?.email || 'Joueur Inconnu'}
+                </h3>
                 <p className="text-[#737572] text-sm">
-                  Veut rejoindre <span className="text-[#2A800A] font-medium">{request.teamName}</span>
+                  Veut rejoindre <span className="text-[#2A800A] font-medium">{request.team_details?.name}</span>
                 </p>
                 <p className="text-[#737572] text-xs mt-1">
-                  Poste : {request.role} • Reçu le {request.date}
+                  {/* On pourrait afficher le message s'il y en a un */}
+                  Message : {request.message || "Aucun message"} • Reçu le {new Date(request.created_at).toLocaleDateString()}
                 </p>
               </div>
             </div>
