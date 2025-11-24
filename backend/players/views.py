@@ -74,6 +74,11 @@ class PublicPlayerProfileView(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'user__id'
 
     def retrieve(self, request, *args, **kwargs):
+        """
+        Retrieve a public player profile by user ID.
+
+        GET /api/player/public/:user_id/
+        """
         try:
             return super().retrieve(request, *args, **kwargs)
         except:
