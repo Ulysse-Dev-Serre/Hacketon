@@ -213,12 +213,22 @@ class TeamViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=201)
 
     def update(self, request, *args, **kwargs):
+        """
+        Updates a specific team by ID.
+
+        PATCH /api/teams/:id/
+        """
         print(f"DEBUG: Team update called by {request.user} for ID {kwargs.get('pk')}. Data: {request.data}")
         if request.user.role != 'organizer':
             return Response({"error": "Only organizers can update teams"}, status=403)
         return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
+        """
+        Deletes a specific team by ID.
+
+        DELETE /api/teams/:id/
+        """
         print(f"DEBUG: Team destroy called by {request.user} for ID {kwargs.get('pk')}")
         if request.user.role != 'organizer':
             return Response({"error": "Only organizers can delete teams"}, status=403)
@@ -233,6 +243,11 @@ class OrganizerDashboardView(APIView):
     permission_classes = [IsAuthenticatedCustom]
 
     def get(self, request):
+        """
+        Retrieves dashboard statistics for an organizer.
+
+        GET /api/organizer/dashboard/
+        """
         print(f"DEBUG: OrganizerDashboardView GET called by {request.user}")
         if request.user.role != 'organizer':
             return Response({"error": "Only organizers can view dashboard"}, status=403)
