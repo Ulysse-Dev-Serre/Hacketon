@@ -187,7 +187,7 @@ const Home = () => {
                     <div className="text-center py-8 text-gray-500">Chargement...</div>
                 ) : featuredTeams.length > 0 ? (
                     featuredTeams.map(team => (
-                    <div key={team.id} className="bg-white p-4 rounded-xl shadow-sm border border-[#E0E0E0] hover:border-[#2A800A] transition cursor-pointer">
+                    <Link  key={team.id} to={`/teams/${team.id}`} className="bg-white p-4 rounded-xl shadow-sm border border-[#E0E0E0] hover:border-[#2A800A] transition cursor-pointer">
                         <div className="flex items-center gap-4">
                         <div className="bg-gray-100 h-12 w-12 rounded-full flex items-center justify-center text-[#2A800A]">
                             <Shield className="h-6 w-6" />
@@ -200,7 +200,7 @@ const Home = () => {
                         </div>
                         <ArrowRight className="h-4 w-4 text-gray-400" />
                         </div>
-                    </div>
+                    </Link>
                     ))
                 ) : (
                     <div className="text-center py-8 text-gray-500 bg-white rounded-xl border border-dashed border-gray-300">
