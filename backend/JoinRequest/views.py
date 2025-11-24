@@ -17,6 +17,8 @@ class JoinRequestViewSet(viewsets.ModelViewSet):
         Filtre les demandes selon le rôle de l'utilisateur.
         - Joueur : Voit ses propres demandes.
         - Organisateur : Voit les demandes pour les équipes de ses tournois.
+
+        GET /api/join-requests/
         """
         user = self.request.user
         print(f"DEBUG: JoinRequest get_queryset called by {user}")
@@ -131,10 +133,20 @@ class JoinRequestViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def update(self, request, *args, **kwargs):
+        """
+        Updates a specific join request by ID(organizer).
+
+        PATCH /api/join-requests/:id/
+        """
         print(f"DEBUG: JoinRequest update called by {request.user} for ID {kwargs.get('pk')}. Data: {request.data}")
         return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
+        """
+        Deletes a specific join request by ID.
+
+        DELETE /api/join-requests/:id/
+        """
         print(f"DEBUG: JoinRequest destroy called by {request.user} for ID {kwargs.get('pk')}")
         return super().destroy(request, *args, **kwargs)
 
