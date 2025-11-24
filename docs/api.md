@@ -2,7 +2,7 @@
 AUTHENTICATION
 ├── GET  /api/auth/me/              Get current user info ✅
 ├── POST /api/auth/update-role/     Update user role (player/organizer) ✅
-└── POST /api/auth/init/            Sync user data from Clerk (email, first_name, last_name) 🔄 
+
 
 PLAYER PROFILES
 ├── GET   /api/player/profile/      Get authenticated user's player profile ✅🆕
